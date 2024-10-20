@@ -182,8 +182,8 @@ jobs:
           name: common_build
           path: ./server-linux-x86
 
-      - name: trying to build docker image
-        run: make docker_image_linux_x86
+#      - name: trying to build docker image
+#        run: make docker_image_linux_x86
 
   build_linux_amd64:
     name: Build linux amd64
@@ -229,8 +229,8 @@ jobs:
           name: common_build
           path: ./server-linux-amd64
 
-      - name: trying to build docker image
-        run: make docker_image_linux_amd64
+#      - name: trying to build docker image
+#        run: make docker_image_linux_amd64
 
   build_linux_arm6:
     name: Build linux arm6
@@ -315,8 +315,8 @@ jobs:
           name: common_build
           path: ./server-linux-arm-7
 
-      - name: trying to build docker image
-        run: make docker_image_linux_armv7l
+#      - name: trying to build docker image
+#        run: make docker_image_linux_armv7l
 
   build_linux_arm64:
     name: Build linux arm64
@@ -362,8 +362,8 @@ jobs:
           name: common_build
           path: ./server-linux-arm64
 
-      - name: trying to build docker image
-        run: make docker_image_linux_arm64
+#      - name: trying to build docker image
+#        run: make docker_image_linux_arm64
 
   build_windows_amd64:
     name: Build windows amd64

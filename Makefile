@@ -284,6 +284,7 @@ typedoc:
 .PHONY: build # Build the container image
 build:
 	@docker buildx create --use --name=smart-home --node=smart-home && \
+	echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
 	docker --debug buildx build \
 		--build-arg GO_BUILD_LDFLAGS="${GO_BUILD_LDFLAGS}" \
 		--build-arg GO_BUILD_TAGS="${GO_BUILD_TAGS}" \
@@ -295,11 +296,12 @@ build:
 .PHONY: publish # Push the image to the remote registry
 publish:
 	@docker buildx create --use --name=smart-home --node=smart-home && \
+	echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
 	docker buildx build \
 		--build-arg GO_BUILD_LDFLAGS="${GO_BUILD_LDFLAGS}" \
 		--build-arg GO_BUILD_TAGS="${GO_BUILD_TAGS}" \
 		-f ./bin/docker/Dockerfile.server \
 		--platform linux/386,linux/amd64,linux/arm64,linux/arm/v5,linux/arm/v6,linux/arm/v7,linux/ppc64le,linux/s390x \
-		--output "type=image,push=false" \
+		--output "type=image,push=true" \
 		--tag $(DOCKER_IMAGE_VER) \
 		.

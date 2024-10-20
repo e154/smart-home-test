@@ -107,9 +107,6 @@ jobs:
         id: build-linux-x86
         run: make build_linux_x86
 
-      - name: trying to build docker image
-        run: make docker_image_linux_x86
-
       - name: upload server linux x86
         uses: softprops/action-gh-release@v1
         with:
@@ -150,9 +147,6 @@ jobs:
       - name: trying to build
         id: build-linux-amd64
         run: make build_linux_amd64
-
-      - name: trying to build docker image
-        run: make docker_image_linux_amd64
 
       - name: upload server linux amd64
         uses: softprops/action-gh-release@v1
@@ -269,9 +263,6 @@ jobs:
         id: build-linux-armv7l
         run: make build_linux_armv7l
 
-      - name: trying to build docker image
-        run: make docker_image_linux_armv7l
-
       - name: upload server linux armv7
         uses: softprops/action-gh-release@v1
         with:
@@ -312,9 +303,6 @@ jobs:
       - name: trying to build
         id: build-linux-arm64
         run: make build_linux_arm64
-
-      - name: trying to build docker image
-        run: make docker_image_linux_arm64
 
       - name: upload server linux arm64
         uses: softprops/action-gh-release@v1

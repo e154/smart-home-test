@@ -31,7 +31,7 @@ LABEL org.opencontainers.image.title="Smart home" \
   org.opencontainers.image.authors="Filippov Aleksei <af@e154.ru>" \
   org.opencontainers.image.description="Managing iot devices has become easier thanks to the smart-home automation software platform for managing iot devices with a graphical interface and javascript's scripts." \
   org.opencontainers.image.vendor="SMART HOME" \
-  org.opencontainers.image.licenses= "GPL-3.0-only" \
+  org.opencontainers.image.licenses="GPL-3.0-only" \
   com.docker.desktop.extension.api.version="${RELEASE_VERSION}" \
   com.docker.desktop.extension.icon="https://raw.githubusercontent.com/e154/smart-home/refs/heads/master/static_source/admin/public/android-chrome-64x64.png"
 

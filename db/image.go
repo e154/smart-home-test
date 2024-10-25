@@ -36,7 +36,7 @@ import (
 
 // Images ...
 type Images struct {
-	Db *gorm.DB
+	*Common
 }
 
 // Image ...
@@ -58,7 +58,7 @@ func (m *Image) TableName() string {
 
 // Add ...
 func (n Images) Add(ctx context.Context, v *Image) (id int64, err error) {
-	if err = n.Db.WithContext(ctx).Create(&v).Error; err != nil {
+	if err = n.DB(ctx).Create(&v).Error; err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
@@ -80,8 +80,9 @@ func (n Images) Add(ctx context.Context, v *Image) (id int64, err error) {
 
 // GetById ...
 func (n Images) GetById(ctx context.Context, id int64) (v *Image, err error) {
+
 	v = &Image{Id: id}
-	if err = n.Db.WithContext(ctx).First(&v).Error; err != nil {
+	if err = n.DB(ctx).First(&v).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			err = errors.Wrap(apperr.ErrImageNotFound, fmt.Sprintf("id \"%d\"", id))
 			return
@@ -94,7 +95,7 @@ func (n Images) GetById(ctx context.Context, id int64) (v *Image, err error) {
 // GetByImageName ...
 func (n Images) GetByImageName(ctx context.Context, imageName string) (v *Image, err error) {
 	v = &Image{}
-	if err = n.Db.WithContext(ctx).Model(v).Where("image = ?", imageName).First(&v).Error; err != nil {
+	if err = n.DB(ctx).Model(v).Where("image = ?", imageName).First(&v).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			err = errors.Wrap(apperr.ErrImageNotFound, fmt.Sprintf("name \"%s\"", imageName))
 			return
@@ -107,7 +108,7 @@ func (n Images) GetByImageName(ctx context.Context, imageName string) (v *Image,
 
 // Update ...
 func (n Images) Update(ctx context.Context, m *Image) (err error) {
-	err = n.Db.WithContext(ctx).Model(&Image{Id: m.Id}).Updates(map[string]interface{}{
+	err = n.DB(ctx).Model(&Image{Id: m.Id}).Updates(map[string]interface{}{
 		"title": m.Title,
 		"Name":  m.Name,
 	}).Error
@@ -120,7 +121,7 @@ func (n Images) Update(ctx context.Context, m *Image) (err error) {
 
 // Delete ...
 func (n Images) Delete(ctx context.Context, mapId int64) (err error) {
-	if err = n.Db.WithContext(ctx).Delete(&Image{Id: mapId}).Error; err != nil {
+	if err = n.DB(ctx).Delete(&Image{Id: mapId}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrImageDelete, err.Error())
 		return
 	}
@@ -130,13 +131,13 @@ func (n Images) Delete(ctx context.Context, mapId int64) (err error) {
 // List ...
 func (n *Images) List(ctx context.Context, limit, offset int, orderBy, sort string) (list []*Image, total int64, err error) {
 
-	if err = n.Db.WithContext(ctx).Model(Image{}).Count(&total).Error; err != nil {
+	if err = n.DB(ctx).Model(Image{}).Count(&total).Error; err != nil {
 		err = errors.Wrap(apperr.ErrImageList, err.Error())
 		return
 	}
 
 	list = make([]*Image, 0)
-	err = n.Db.WithContext(ctx).
+	err = n.DB(ctx).
 		Limit(limit).
 		Offset(offset).
 		Order(fmt.Sprintf("%s %s", sort, orderBy)).
@@ -161,7 +162,7 @@ func (n *Images) GetFilterList(ctx context.Context) (images []*ImageFilterList, 
 
 	image := &Image{}
 	var rows *sql.Rows
-	rows, err = n.Db.WithContext(ctx).Raw(`
+	rows, err = n.DB(ctx).Raw(`
 SELECT
 	to_char(created_at,'YYYY-mm-dd') as date, COUNT( created_at) as count
 FROM ` + image.TableName() + `
@@ -189,7 +190,7 @@ func (n *Images) GetAllByDate(ctx context.Context, filter string) (images []*Ima
 
 	images = make([]*Image, 0)
 	image := &Image{}
-	err = n.Db.WithContext(ctx).Raw(`
+	err = n.DB(ctx).Raw(`
 SELECT *
 FROM `+image.TableName()+`
 WHERE to_char(created_at,'YYYY-mm-dd') = ?
@@ -205,7 +206,7 @@ ORDER BY created_at`, filter).
 
 // AddMultiple ...
 func (n *Images) AddMultiple(ctx context.Context, images []*Image) (err error) {
-	if err = n.Db.WithContext(ctx).Create(&images).Error; err != nil {
+	if err = n.DB(ctx).Create(&images).Error; err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {

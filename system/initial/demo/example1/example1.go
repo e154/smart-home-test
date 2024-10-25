@@ -38,10 +38,7 @@ func NewExample1(adaptors *adaptors.Adaptors,
 	}
 }
 
-func (e *Example1) Install(ctx context.Context, adaptors *adaptors.Adaptors) (err error) {
-	if adaptors != nil {
-		e.adaptors = adaptors
-	}
+func (e *Example1) Install(ctx context.Context) (err error) {
 
 	return
 }

@@ -21,7 +21,6 @@ package endpoint
 import (
 	"context"
 	"fmt"
-
 	"github.com/e154/smart-home/common/apperr"
 	m "github.com/e154/smart-home/models"
 	"github.com/e154/smart-home/plugins/alexa"
@@ -62,7 +61,7 @@ func (n *AlexaSkillEndpoint) Add(ctx context.Context, params *m.AlexaSkill) (res
 		Skill: result,
 	})
 
-	log.Infof("added alexa's skill id %d", params.Id)
+	log.Infof("added alexa's skill id:(%d)", params.Id)
 
 	return
 }
@@ -84,8 +83,56 @@ func (n *AlexaSkillEndpoint) Update(ctx context.Context, params *m.AlexaSkill) (
 		return
 	}
 
-	if err = n.adaptors.AlexaSkill.Update(ctx, params); err != nil {
+	var app *m.AlexaSkill
+	if app, err = n.adaptors.AlexaSkill.GetById(ctx, params.Id); err != nil {
 		return
+	}
+
+	err = n.adaptors.Transaction.Do(ctx, func(ctx context.Context) error {
+
+		// обновление, либо удаление alexa intent
+		for _, intent := range app.Intents {
+			var exist bool
+			for _, parIntent := range params.Intents {
+				if intent.Name == parIntent.Name {
+					exist = true
+				}
+			}
+			if !exist {
+				if err = n.adaptors.AlexaIntent.Delete(ctx, intent); err != nil {
+					return err
+				}
+			} else {
+				if err = n.adaptors.AlexaIntent.Update(ctx, intent); err != nil {
+					return err
+				}
+			}
+		}
+
+		// добавление alexa intent
+		for _, parIntent := range params.Intents {
+			var exist bool
+			for _, intent := range app.Intents {
+				if intent.Name == parIntent.Name {
+					exist = true
+				}
+			}
+			if !exist {
+				if err = n.adaptors.AlexaIntent.Add(ctx, parIntent); err != nil {
+					return err
+				}
+			}
+		}
+
+		if err = n.adaptors.AlexaSkill.Update(ctx, params); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
 	skill, err = n.adaptors.AlexaSkill.GetById(ctx, params.Id)
@@ -93,7 +140,7 @@ func (n *AlexaSkillEndpoint) Update(ctx context.Context, params *m.AlexaSkill) (
 		return
 	}
 
-	log.Infof("updated alexa's skill id %d", params.Id)
+	log.Infof("updated alexa's skill id:(%d)", params.Id)
 
 	n.eventBus.Publish(fmt.Sprintf("system/models/alexa/skill/%d", skill.Id), alexa.EventUpdatedAlexaSkillModel{
 		Skill: skill,
@@ -132,7 +179,7 @@ func (n *AlexaSkillEndpoint) Delete(ctx context.Context, skillId int64) (err err
 		Skill: skill,
 	})
 
-	log.Infof("alexa's skill id %d was deleted", skillId)
+	log.Infof("alexa's skill id:(%d) was deleted", skillId)
 
 	return
 }

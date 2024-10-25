@@ -42,11 +42,8 @@ func NewMigrationTemplates(adaptors *adaptors.Adaptors) *MigrationTemplates {
 	}
 }
 
-func (t *MigrationTemplates) Up(ctx context.Context, adaptors *adaptors.Adaptors) (err error) {
+func (t *MigrationTemplates) Up(ctx context.Context) (err error) {
 
-	if adaptors != nil {
-		t.adaptors = adaptors
-	}
 	dataDir := filepath.Join("data", "templates")
 
 	var files []os.DirEntry

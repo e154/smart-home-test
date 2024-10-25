@@ -20,6 +20,7 @@ package models
 
 import (
 	"context"
+	"github.com/e154/smart-home/endpoint"
 	"testing"
 
 	"github.com/e154/smart-home/adaptors"
@@ -34,7 +35,8 @@ func TestEntity(t *testing.T) {
 	Convey("entity", t, func(ctx C) {
 		err := container.Invoke(func(adaptors *adaptors.Adaptors,
 			migrations *migrations.Migrations,
-			accessList access_list.AccessListService) {
+			accessList access_list.AccessListService,
+			endpoint *endpoint.Endpoint) {
 
 			// clear database
 			_ = migrations.Purge()
@@ -192,7 +194,7 @@ func TestEntity(t *testing.T) {
 							{Name: "bar"},
 						},
 					}
-					err = adaptors.Entity.Update(context.Background(), entity)
+					_, err = endpoint.Entity.Update(context.Background(), entity)
 					So(err, ShouldBeNil)
 
 					entity, err = adaptors.Entity.GetById(context.Background(), entity.Id)
@@ -214,7 +216,7 @@ func TestEntity(t *testing.T) {
 					entity.Actions = []*m.EntityAction{}
 					entity.Tags = nil
 
-					err = adaptors.Entity.Update(context.Background(), entity)
+					_, err = endpoint.Entity.Update(context.Background(), entity)
 					So(err, ShouldBeNil)
 
 					entity, err = adaptors.Entity.GetById(context.Background(), entity.Id)
@@ -238,7 +240,7 @@ func TestEntity(t *testing.T) {
 						},
 					}
 					entity.States = []*m.EntityState{}
-					err = adaptors.Entity.Update(context.Background(), entity)
+					_, err = endpoint.Entity.Update(context.Background(), entity)
 					So(err, ShouldBeNil)
 
 					entity, err = adaptors.Entity.GetById(context.Background(), entity.Id)
@@ -260,7 +262,7 @@ func TestEntity(t *testing.T) {
 						script1,
 						script2,
 					}
-					err = adaptors.Entity.Update(context.Background(), entity)
+					_, err = endpoint.Entity.Update(context.Background(), entity)
 					So(err, ShouldBeNil)
 
 					entity, err = adaptors.Entity.GetById(context.Background(), entity.Id)
@@ -279,7 +281,7 @@ func TestEntity(t *testing.T) {
 					entity.Scripts = []*m.Script{}
 					entity.Metrics = []*m.Metric{}
 
-					err = adaptors.Entity.Update(context.Background(), entity)
+					_, err = endpoint.Entity.Update(context.Background(), entity)
 					So(err, ShouldBeNil)
 
 					entity, err = adaptors.Entity.GetById(context.Background(), entity.Id)
@@ -312,7 +314,7 @@ func TestEntity(t *testing.T) {
 						},
 					}
 
-					err = adaptors.Entity.Update(context.Background(), entity)
+					_, err = endpoint.Entity.Update(context.Background(), entity)
 					So(err, ShouldBeNil)
 
 					entity, err = adaptors.Entity.GetById(context.Background(), entity.Id)
@@ -389,7 +391,7 @@ func TestEntity(t *testing.T) {
 							{Name: "bar"},
 						},
 					}
-					err = adaptors.Entity.Import(context.Background(), entity)
+					err = endpoint.Entity.Import(context.Background(), entity)
 					So(err, ShouldBeNil)
 
 					entity, err = adaptors.Entity.GetById(context.Background(), entity.Id)
@@ -419,7 +421,7 @@ func TestEntity(t *testing.T) {
 						Attributes: NetAttr(),
 						Settings:   NetSettings(),
 					}
-					err = adaptors.Entity.Import(context.Background(), entity3)
+					err = endpoint.Entity.Import(context.Background(), entity3)
 					So(err, ShouldBeNil)
 
 					entity, err = adaptors.Entity.GetById(context.Background(), entity3.Id)
@@ -436,7 +438,7 @@ func TestEntity(t *testing.T) {
 					So(entity.Attributes["s"].Name, ShouldEqual, "s")
 					So(entity.Attributes["s"].String(), ShouldEqual, "")
 
-					err = adaptors.Entity.Import(context.Background(), entity3)
+					err = endpoint.Entity.Import(context.Background(), entity3)
 					So(err, ShouldNotBeNil)
 				})
 			})

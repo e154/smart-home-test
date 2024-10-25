@@ -19,6 +19,7 @@
 package supervisor
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"os"
@@ -329,15 +330,6 @@ func (p *pluginManager) GetPluginReadme(ctx context.Context, name string, note *
 
 func (p *pluginManager) LoadPluginLib(pluginInfo *PluginFileInfo) error {
 
-	//qwe, _ := filepath.Abs(path.Join(pluginsDir, pluginInfo.Name))
-	//os.Setenv("RPATH", fmt.Sprintf("%s:%s", qwe, os.Getenv("RPATH")))
-	//os.Setenv("PATH", fmt.Sprintf("%s:%s", qwe, os.Getenv("PATH")))
-	//os.Setenv("LD_PRELOAD", fmt.Sprintf("%s:%s", qwe, os.Getenv("LD_PRELOAD")))
-	//os.Setenv("LD_LIBRARY_PATH", fmt.Sprintf("%s:%s", qwe, os.Getenv("LD_LIBRARY_PATH")))
-	//os.Setenv("DYLD_LIBRARY_PATH", fmt.Sprintf("%s:%s", qwe, os.Getenv("DYLD_LIBRARY_PATH")))
-
-	//fmt.Println("PATH", os.Getenv("PATH"))
-
 	log.Infof("load external library %s", pluginInfo.Name)
 	plugin, err := plugin.Open(path.Join(pluginsDir, pluginInfo.Name, "plugin.so"))
 	if err != nil {
@@ -386,5 +378,71 @@ func (p *pluginManager) ListPluginsDir(ctx context.Context) (list PluginFileInfo
 	//sort.Sort(list)
 
 	debug.Println(list)
+	return
+}
+
+func (p *pluginManager) UploadPlugin(ctx context.Context, reader *bufio.Reader, fileName string) (newFile *m.Plugin, err error) {
+
+	//var list []*m.Backup
+	//if list, _, err = b.List(ctx, 999, 0, "", ""); err != nil {
+	//	return
+	//}
+	//
+	//for _, file := range list {
+	//	if fileName == file.Name {
+	//		err = apperr.ErrBackupNameNotUnique
+	//		return
+	//	}
+	//}
+	//
+	//buffer := bytes.NewBuffer(make([]byte, 0))
+	//part := make([]byte, 128)
+	//
+	//var count int
+	//for {
+	//	if count, err = reader.Read(part); err != nil {
+	//		break
+	//	}
+	//	buffer.Write(part[:count])
+	//}
+	//if err != io.EOF {
+	//	return
+	//}
+	//
+	//contentType := http.DetectContentType(buffer.Bytes())
+	//log.Infof("Content-type from buffer, %s", contentType)
+	//
+	////create destination file making sure the path is writeable.
+	//var dst *os.File
+	//filePath := filepath.Join(b.cfg.Path, fileName)
+	//if dst, err = os.Create(filePath); err != nil {
+	//	return
+	//}
+	//
+	//defer dst.Close()
+	//
+	////copy the uploaded file to the destination file
+	//if _, err = io.Copy(dst, buffer); err != nil {
+	//	return
+	//}
+	//
+	//size, _ := common.GetFileSize(filePath)
+	//newFile = &m.Backup{
+	//	Name:     fileName,
+	//	Size:     size,
+	//	MimeType: contentType,
+	//}
+	//
+	//b.eventBus.Publish("system/services/backup", events.EventUploadedBackup{
+	//	Name: fileName,
+	//})
+	//
+	//go b.RestoreFromChunks()
+
+	return
+}
+
+func (p *pluginManager) RemovePlugin(ctx context.Context, pluginName string) (err error) {
+
 	return
 }

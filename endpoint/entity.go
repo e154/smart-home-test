@@ -50,16 +50,29 @@ func (n *EntityEndpoint) Add(ctx context.Context, entity *m.Entity) (result *m.E
 		return
 	}
 
-	if err = n.adaptors.Entity.Add(ctx, entity); err != nil {
-		return
-	}
+	err = n.adaptors.Transaction.Do(ctx, func(ctx context.Context) error {
+
+		for _, tag := range entity.Tags {
+			var foundedTag *m.Tag
+			if foundedTag, err = n.adaptors.Tag.GetByName(ctx, tag.Name); err == nil {
+				tag.Id = foundedTag.Id
+			} else {
+				tag.Id = 0
+				if tag.Id, err = n.adaptors.Tag.Add(ctx, tag); err != nil {
+					return err
+				}
+			}
+		}
+
+		return n.adaptors.Entity.Add(ctx, entity)
+	})
 
 	result, err = n.adaptors.Entity.GetById(ctx, entity.Id)
 	if err != nil {
 		return
 	}
 
-	log.Infof("added new entity id %s", result.Id)
+	log.Infof("added new entity id:(%s)", result.Id)
 
 	n.eventBus.Publish("system/models/entities/"+entity.Id.String(), events.EventCreatedEntityModel{
 		EntityId: result.Id,
@@ -100,15 +113,104 @@ func (n *EntityEndpoint) Import(ctx context.Context, entity *m.Entity) (err erro
 		}
 	}
 
-	if err = n.adaptors.Entity.Import(ctx, entity); err != nil {
-		return
+	err = n.adaptors.Transaction.Do(ctx, func(ctx context.Context) error {
+
+		// area
+		if entity.Area != nil {
+			var area *m.Area
+			if area, err = n.adaptors.Area.GetByName(ctx, entity.Area.Name); err != nil {
+				if entity.Area.Id, err = n.adaptors.Area.Add(ctx, entity.Area); err != nil {
+					return err
+				}
+			} else {
+				entity.Area.Id = area.Id
+				entity.AreaId = common.Int64(area.Id)
+			}
+
+		}
+
+		// scripts
+		for _, script := range entity.Scripts {
+			var foundedScript *m.Script
+			if foundedScript, err = n.adaptors.Script.GetByName(ctx, script.Name); err == nil {
+				script.Id = foundedScript.Id
+			} else {
+				script.Id = 0
+				if script.Id, err = n.adaptors.Script.Add(ctx, script); err != nil {
+					return err
+				}
+			}
+		}
+
+		// tags
+		for _, tag := range entity.Tags {
+			var foundedTag *m.Tag
+			if foundedTag, err = n.adaptors.Tag.GetByName(ctx, tag.Name); err == nil {
+				tag.Id = foundedTag.Id
+			} else {
+				tag.Id = 0
+				if tag.Id, err = n.adaptors.Tag.Add(ctx, tag); err != nil {
+					return err
+				}
+			}
+		}
+
+		//actions
+		if len(entity.Actions) > 0 {
+			for i, action := range entity.Actions {
+				action.Id = 0
+				action.EntityId = entity.Id
+				if action.Script != nil {
+					var foundedScript *m.Script
+					if foundedScript, err = n.adaptors.Script.GetByName(ctx, action.Script.Name); err == nil {
+						action.Script.Id = foundedScript.Id
+					} else {
+						action.Script.Id = 0
+						if action.Script.Id, err = n.adaptors.Script.Add(ctx, action.Script); err != nil {
+							return err
+						}
+					}
+				}
+				if entity.Actions[i].Icon != nil && *entity.Actions[i].Icon == "" {
+					entity.Actions[i].Icon = nil
+				}
+				entity.Actions[i].EntityId = entity.Id
+			}
+		}
+
+		//states
+		if len(entity.States) > 0 {
+			for _, state := range entity.States {
+				state.Id = 0
+				state.EntityId = entity.Id
+			}
+		}
+
+		//metrics
+		for _, metric := range entity.Metrics {
+			metric.Id = 0
+			if metric.Id, err = n.adaptors.Metric.Add(ctx, metric); err != nil {
+				return err
+			}
+		}
+
+		// entity
+		if err = n.adaptors.Entity.Add(ctx, entity); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
 	}
 
 	n.eventBus.Publish("system/models/entities/"+entity.Id.String(), events.EventCreatedEntityModel{
 		EntityId: entity.Id,
 	})
 
-	log.Infof("entity id %s was imported", entity.Id)
+	log.Infof("entity id:(%s) was imported", entity.Id)
 
 	return
 }
@@ -153,7 +255,83 @@ func (n *EntityEndpoint) Update(ctx context.Context, params *m.Entity) (result *
 		return
 	}
 
-	if err = n.adaptors.Entity.Update(ctx, entity); err != nil {
+	var oldVer *m.Entity
+	if oldVer, err = n.adaptors.Entity.GetById(ctx, params.Id); err != nil {
+		return
+	}
+
+	err = n.adaptors.Transaction.Do(ctx, func(ctx context.Context) error {
+
+		// entity action
+		if err = n.adaptors.EntityAction.DeleteByEntityId(ctx, entity.Id); err != nil {
+			return err
+		}
+
+		// entity action
+		if err = n.adaptors.EntityState.DeleteByEntityId(ctx, entity.Id); err != nil {
+			return err
+		}
+
+		// scripts
+		if err = n.adaptors.Entity.DeleteScripts(ctx, oldVer.Id); err != nil {
+			return err
+		}
+
+		// tags
+		if err = n.adaptors.Entity.DeleteTags(ctx, oldVer.Id); err != nil {
+			return err
+		}
+
+		// tags
+		for _, tag := range entity.Tags {
+			var foundedTag *m.Tag
+			if foundedTag, err = n.adaptors.Tag.GetByName(ctx, tag.Name); err == nil {
+				tag.Id = foundedTag.Id
+			} else {
+				tag.Id = 0
+				if tag.Id, err = n.adaptors.Tag.Add(ctx, tag); err != nil {
+					return err
+				}
+			}
+		}
+
+		if err = n.adaptors.Entity.Update(ctx, entity); err != nil {
+			return err
+		}
+
+		//metrics
+		for _, oldMetric := range oldVer.Metrics {
+			var exist bool
+			for _, metric := range entity.Metrics {
+				if metric.Id == oldMetric.Id {
+					exist = true
+				}
+			}
+			if !exist {
+				if err = n.adaptors.Metric.Delete(ctx, oldMetric.Id); err != nil {
+					return err
+				}
+			}
+		}
+
+		for _, metric := range entity.Metrics {
+			var exist bool
+			for _, oldMetric := range oldVer.Metrics {
+				if metric.Id == oldMetric.Id {
+					exist = true
+				}
+			}
+			if exist {
+				if err = n.adaptors.Metric.Update(ctx, metric); err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
 		return
 	}
 
@@ -166,7 +344,7 @@ func (n *EntityEndpoint) Update(ctx context.Context, params *m.Entity) (result *
 		EntityId: result.Id,
 	})
 
-	log.Infof("updated entity id %s", result.Id)
+	log.Infof("updated entity id:(%s)", result.Id)
 
 	return
 }
@@ -192,21 +370,25 @@ func (n *EntityEndpoint) Delete(ctx context.Context, id common.EntityId) (err er
 		return
 	}
 
-	var entity *m.Entity
-	entity, err = n.adaptors.Entity.GetById(ctx, id)
-	if err != nil {
-		return
-	}
+	err = n.adaptors.Transaction.Do(ctx, func(ctx context.Context) error {
+		var entity *m.Entity
+		if entity, err = n.adaptors.Entity.GetById(ctx, id); err != nil {
+			return err
+		}
 
-	if err = n.adaptors.Entity.Delete(ctx, entity.Id); err != nil {
-		return
-	}
+		for _, metric := range entity.Metrics {
+			if err = n.adaptors.Metric.Delete(ctx, metric.Id); err != nil {
+				return err
+			}
+		}
+		return n.adaptors.Entity.Delete(ctx, entity.Id)
+	})
 
 	n.eventBus.Publish("system/models/entities/"+id.String(), events.CommandUnloadEntity{
 		EntityId: id,
 	})
 
-	log.Infof("entity id %s was deleted", id)
+	log.Infof("entity id:(%s) was deleted", id)
 
 	return
 }
@@ -240,7 +422,7 @@ func (n *EntityEndpoint) Enable(ctx context.Context, id common.EntityId) (err er
 		EntityId: id,
 	})
 
-	log.Infof("entity id %s was enabled", id)
+	log.Infof("entity id:(%s) was enabled", id)
 
 	return
 }
@@ -267,7 +449,7 @@ func (n *EntityEndpoint) Disable(ctx context.Context, id common.EntityId) (err e
 		EntityId: id,
 	})
 
-	log.Infof("entity id %s was disabled", id)
+	log.Infof("entity id:(%s) was disabled", id)
 
 	return
 }

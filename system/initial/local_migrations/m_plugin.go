@@ -69,10 +69,8 @@ func NewMigrationPlugins(adaptors *adaptors.Adaptors) *MigrationPlugins {
 	}
 }
 
-func (n *MigrationPlugins) Up(ctx context.Context, adaptors *adaptors.Adaptors) error {
-	if adaptors != nil {
-		n.adaptors = adaptors
-	}
+func (n *MigrationPlugins) Up(ctx context.Context) error {
+
 	n.addPlugin(ctx, "alexa", false, false, true, alexa.Version)
 	n.addPlugin(ctx, "cgminer", false, false, true, cgminer.Version)
 	n.addPlugin(ctx, "cpuspeed", true, false, false, cpuspeed.Version)

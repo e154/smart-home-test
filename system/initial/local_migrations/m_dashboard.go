@@ -53,7 +53,7 @@ func (n *MigrationDashboard) addDashboard(ctx context.Context, name, _n, _d stri
 		return err
 	}
 
-	err = n.adaptors.Variable.Update(ctx, m.Variable{
+	err = n.adaptors.Variable.CreateOrUpdate(ctx, m.Variable{
 		Name:   name,
 		Value:  fmt.Sprintf("%d", board.Id),
 		System: true,
@@ -62,10 +62,7 @@ func (n *MigrationDashboard) addDashboard(ctx context.Context, name, _n, _d stri
 	return err
 }
 
-func (n *MigrationDashboard) Up(ctx context.Context, adaptors *adaptors.Adaptors) error {
-	if adaptors != nil {
-		n.adaptors = adaptors
-	}
+func (n *MigrationDashboard) Up(ctx context.Context) error {
 
 	err := n.addDashboard(ctx, "devDashboardLight", "develop (light theme)", "DEVELOP")
 	So(err, ShouldBeNil)

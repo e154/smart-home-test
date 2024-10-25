@@ -37,9 +37,7 @@ func NewMigrationPachka(adaptors *adaptors.Adaptors) *MigrationPachka {
 	}
 }
 
-func (n *MigrationPachka) Up(ctx context.Context, adaptors *adaptors.Adaptors) error {
-	if adaptors != nil {
-		n.adaptors = adaptors
-	}
+func (n *MigrationPachka) Up(ctx context.Context) error {
+
 	return n.addPlugin(ctx, "pachka", true, false, true, speedtest.Version)
 }

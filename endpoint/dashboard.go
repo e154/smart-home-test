@@ -145,7 +145,7 @@ func (d *DashboardEndpoint) Delete(ctx context.Context, id int64) (err error) {
 		return err
 	}
 
-	log.Infof("dashboard id %d was deleted", id)
+	log.Infof("dashboard id:(%d) was deleted", id)
 
 	return
 }
@@ -189,12 +189,55 @@ func (d *DashboardEndpoint) preloadEntities(ctx context.Context, board *m.Dashbo
 // Import ...
 func (d *DashboardEndpoint) Import(ctx context.Context, board *m.Dashboard) (result *m.Dashboard, err error) {
 
-	//b, _ := json.Marshal(board)
-	//fmt.Println(string(b))
-
+	board.Id = 0
+	board.Name = board.Name + " [IMPORTED]"
 	var id int64
-	if id, err = d.adaptors.Dashboard.Import(ctx, board); err != nil {
-		return
+
+	err = d.adaptors.Transaction.Do(ctx, func(ctx context.Context) error {
+		if id, err = d.adaptors.Dashboard.Add(ctx, board); err != nil {
+			return err
+		}
+
+		// tabs
+		if len(board.Tabs) > 0 {
+			for _, tab := range board.Tabs {
+				tab.Id = 0
+				tab.DashboardId = id
+				var tabId int64
+				if tabId, err = d.adaptors.DashboardTab.Add(ctx, tab); err != nil {
+					return err
+				}
+
+				// cards
+				if len(tab.Cards) > 0 {
+					for _, card := range tab.Cards {
+						card.Id = 0
+						card.DashboardTabId = tabId
+						var cardId int64
+						if cardId, err = d.adaptors.DashboardCard.Add(ctx, card); err != nil {
+							return err
+						}
+
+						// items
+						if len(card.Items) > 0 {
+							for _, item := range card.Items {
+								item.Id = 0
+								item.DashboardCardId = cardId
+								if _, err = d.adaptors.DashboardCardItem.Add(ctx, item); err != nil {
+									return err
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
 	if result, err = d.adaptors.Dashboard.GetById(ctx, id); err != nil {

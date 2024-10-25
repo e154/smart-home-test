@@ -267,7 +267,8 @@ export default {
     actionDescription: "Описание",
     actorStates: "Состояния актора",
     actorSettings: "Настройки актора",
-    readme: 'Инфо'
+    readme: 'Инфо',
+    uploadPlugin: 'Загрузить плагиг'
   },
   areas: {
     id: "ID",

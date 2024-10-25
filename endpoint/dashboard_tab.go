@@ -20,9 +20,9 @@ package endpoint
 
 import (
 	"context"
-	"github.com/pkg/errors"
 
 	"github.com/jinzhu/copier"
+	"github.com/pkg/errors"
 
 	"github.com/e154/smart-home/common"
 	"github.com/e154/smart-home/common/apperr"
@@ -134,20 +134,49 @@ func (t *DashboardTabEndpoint) Delete(ctx context.Context, id int64) (err error)
 		return
 	}
 
-	log.Infof("dashboard tab id %d was deleted", id)
+	log.Infof("dashboard tab id:(%d) was deleted", id)
 
 	return
 }
 
 // Import ...
-func (t *DashboardTabEndpoint) Import(ctx context.Context, board *m.DashboardTab) (result *m.DashboardTab, err error) {
-
-	//b, _ := json.Marshal(board)
-	//fmt.Println(string(b))
+func (t *DashboardTabEndpoint) Import(ctx context.Context, tab *m.DashboardTab) (result *m.DashboardTab, err error) {
 
 	var id int64
-	if id, err = t.adaptors.DashboardTab.Import(ctx, board); err != nil {
-		return
+	err = t.adaptors.Transaction.Do(ctx, func(ctx context.Context) error {
+
+		if id, err = t.adaptors.DashboardTab.Add(ctx, tab); err != nil {
+			return err
+		}
+
+		// cards
+		if len(tab.Cards) > 0 {
+			for _, card := range tab.Cards {
+				card.Id = 0
+				card.DashboardTabId = id
+				var cardId int64
+				if cardId, err = t.adaptors.DashboardCard.Add(ctx, card); err != nil {
+					return err
+				}
+
+				// items
+				if len(card.Items) > 0 {
+					for _, item := range card.Items {
+						item.Id = 0
+						item.DashboardCardId = cardId
+						if _, err = t.adaptors.DashboardCardItem.Add(ctx, item); err != nil {
+							return err
+						}
+					}
+				}
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
 	if result, err = t.adaptors.DashboardTab.GetById(ctx, id); err != nil {
@@ -157,7 +186,7 @@ func (t *DashboardTabEndpoint) Import(ctx context.Context, board *m.DashboardTab
 		return
 	}
 
-	if err = t.preloadEntities(ctx, board); err != nil {
+	if err = t.preloadEntities(ctx, tab); err != nil {
 		return
 	}
 

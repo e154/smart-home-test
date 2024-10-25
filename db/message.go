@@ -26,12 +26,11 @@ import (
 	"github.com/e154/smart-home/common/apperr"
 
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 )
 
 // Messages ...
 type Messages struct {
-	Db *gorm.DB
+	*Common
 }
 
 // Message ...
@@ -51,7 +50,7 @@ func (d *Message) TableName() string {
 
 // Add ...
 func (n Messages) Add(ctx context.Context, msg *Message) (id int64, err error) {
-	if err = n.Db.WithContext(ctx).Create(msg).Error; err != nil {
+	if err = n.DB(ctx).Create(msg).Error; err != nil {
 		err = errors.Wrap(apperr.ErrMessageAdd, err.Error())
 		return
 	}

@@ -44,10 +44,7 @@ func NewMigrationRoles(adaptors *adaptors.Adaptors,
 	}
 }
 
-func (r *MigrationRoles) Up(ctx context.Context, adaptors *adaptors.Adaptors) (err error) {
-	if adaptors != nil {
-		r.adaptors = adaptors
-	}
+func (r *MigrationRoles) Up(ctx context.Context) (err error) {
 
 	if _, err = r.addAdmin(ctx); err != nil {
 		return

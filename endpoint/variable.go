@@ -21,7 +21,6 @@ package endpoint
 import (
 	"context"
 	"fmt"
-
 	"github.com/e154/smart-home/common"
 	"github.com/e154/smart-home/common/apperr"
 	"github.com/e154/smart-home/common/events"
@@ -49,7 +48,7 @@ func (v *VariableEndpoint) Add(ctx context.Context, variable m.Variable) (err er
 		return
 	}
 
-	if err = v.adaptors.Variable.CreateOrUpdate(ctx, variable); err != nil {
+	if err = v.CreateOrUpdate(ctx, variable); err != nil {
 		return
 	}
 
@@ -97,7 +96,7 @@ func (v *VariableEndpoint) Update(ctx context.Context, _variable m.Variable) (er
 		variable.Tags = _variable.Tags
 	}
 
-	if err = v.adaptors.Variable.CreateOrUpdate(ctx, variable); err != nil {
+	if err = v.CreateOrUpdate(ctx, variable); err != nil {
 		return
 	}
 
@@ -157,6 +156,33 @@ func (n *VariableEndpoint) Search(ctx context.Context, query string, limit, offs
 	}
 
 	result, total, err = n.adaptors.Variable.Search(ctx, query, int(limit), int(offset))
+
+	return
+}
+
+// CreateOrUpdate ...
+func (n *VariableEndpoint) CreateOrUpdate(ctx context.Context, variable m.Variable) (err error) {
+
+	err = n.adaptors.Transaction.Do(ctx, func(ctx context.Context) error {
+
+		if err = n.adaptors.Variable.DeleteTags(ctx, variable.Name); err != nil {
+			return err
+		}
+
+		// tags
+		for _, tag := range variable.Tags {
+			if foundedTag, _err := n.adaptors.Tag.GetByName(ctx, tag.Name); _err == nil {
+				tag.Id = foundedTag.Id
+			} else {
+				tag.Id = 0
+				if tag.Id, err = n.adaptors.Tag.Add(ctx, tag); err != nil {
+					return err
+				}
+			}
+		}
+
+		return n.adaptors.Variable.CreateOrUpdate(ctx, variable)
+	})
 
 	return
 }

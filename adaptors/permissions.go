@@ -21,87 +21,12 @@ package adaptors
 import (
 	"context"
 
-	"gorm.io/gorm"
-
-	"github.com/e154/smart-home/db"
 	m "github.com/e154/smart-home/models"
 )
 
-// IPermission ...
-type IPermission interface {
+// PermissionRepo ...
+type PermissionRepo interface {
 	Add(ctx context.Context, permission *m.Permission) (id int64, err error)
 	Delete(ctx context.Context, roleName, packageName string, levelName []string) (err error)
 	GetAllPermissions(ctx context.Context, roleName string) (permissions []*m.Permission, err error)
-	fromDb(dbPermission *db.Permission) (permission *m.Permission)
-	toDb(permission *m.Permission) (dbPermission *db.Permission)
-}
-
-// Permission ...
-type Permission struct {
-	IPermission
-	table *db.Permissions
-	db    *gorm.DB
-}
-
-// GetPermissionAdaptor ...
-func GetPermissionAdaptor(d *gorm.DB) IPermission {
-	return &Permission{
-		table: &db.Permissions{Db: d},
-		db:    d,
-	}
-}
-
-// Add ...
-func (n *Permission) Add(ctx context.Context, permission *m.Permission) (id int64, err error) {
-
-	dbPermission := n.toDb(permission)
-	if id, err = n.table.Add(ctx, dbPermission); err != nil {
-		return
-	}
-
-	return
-}
-
-// Delete ...
-func (n *Permission) Delete(ctx context.Context, roleName, packageName string, levelName []string) (err error) {
-
-	err = n.table.Delete(ctx, roleName, packageName, levelName)
-
-	return
-}
-
-// GetAllPermissions ...
-func (n *Permission) GetAllPermissions(ctx context.Context, roleName string) (permissions []*m.Permission, err error) {
-
-	var dbPermissions []*db.Permission
-	if dbPermissions, err = n.table.GetAllPermissions(ctx, roleName); err != nil {
-		return
-	}
-
-	for _, dbVer := range dbPermissions {
-		ver := n.fromDb(dbVer)
-		permissions = append(permissions, ver)
-	}
-
-	return
-}
-
-func (n *Permission) fromDb(dbPermission *db.Permission) (permission *m.Permission) {
-	permission = &m.Permission{
-		Id:          dbPermission.Id,
-		RoleName:    dbPermission.RoleName,
-		PackageName: dbPermission.PackageName,
-		LevelName:   dbPermission.LevelName,
-	}
-
-	return
-}
-
-func (n *Permission) toDb(permission *m.Permission) (dbPermission *db.Permission) {
-	dbPermission = &db.Permission{
-		RoleName:    permission.RoleName,
-		LevelName:   permission.LevelName,
-		PackageName: permission.PackageName,
-	}
-	return
 }

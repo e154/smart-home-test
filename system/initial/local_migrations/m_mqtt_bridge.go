@@ -38,9 +38,7 @@ func NewMigrationMqttBridge(adaptors *adaptors.Adaptors) *MigrationMqttBridge {
 	}
 }
 
-func (n *MigrationMqttBridge) Up(ctx context.Context, adaptors *adaptors.Adaptors) error {
-	if adaptors != nil {
-		n.adaptors = adaptors
-	}
+func (n *MigrationMqttBridge) Up(ctx context.Context) error {
+
 	return n.addPlugin(ctx, "mqtt_bridge", false, false, true, mqtt_bridge.Version)
 }

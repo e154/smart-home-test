@@ -60,7 +60,7 @@ func (i *ImageEndpoint) Add(ctx context.Context, params *m.Image) (image *m.Imag
 		return
 	}
 
-	log.Infof("added new image id %d", image.Id)
+	log.Infof("added new image id:(%d)", image.Id)
 
 	return
 }
@@ -105,7 +105,7 @@ func (i *ImageEndpoint) Update(ctx context.Context, params *m.Image) (result *m.
 		return
 	}
 
-	log.Infof("updated image id %d", result.Id)
+	log.Infof("updated image id:(%d)", result.Id)
 
 	return
 }
@@ -128,7 +128,7 @@ func (i *ImageEndpoint) Delete(ctx context.Context, imageId int64) (err error) {
 		return
 	}
 
-	log.Infof("image id %d was deleted", imageId)
+	log.Infof("image id:(%d) was deleted", imageId)
 
 	return
 }

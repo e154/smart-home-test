@@ -37,7 +37,7 @@ import (
 
 // Scripts ...
 type Scripts struct {
-	Db *gorm.DB
+	*Common
 }
 
 type ScriptInfo struct {
@@ -79,7 +79,7 @@ func (d *Script) TableName() string {
 
 // Add ...
 func (n Scripts) Add(ctx context.Context, script *Script) (id int64, err error) {
-	if err = n.Db.WithContext(ctx).Create(&script).Error; err != nil {
+	if err = n.DB(ctx).Create(&script).Error; err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
@@ -102,7 +102,7 @@ func (n Scripts) Add(ctx context.Context, script *Script) (id int64, err error) 
 // GetById ...
 func (n Scripts) GetById(ctx context.Context, scriptId int64) (script *Script, err error) {
 	script = &Script{}
-	err = n.Db.WithContext(ctx).Model(script).
+	err = n.DB(ctx).Model(script).
 		Where("id = ?", scriptId).
 		Preload("Versions").
 		First(&script).Error
@@ -115,7 +115,7 @@ func (n Scripts) GetById(ctx context.Context, scriptId int64) (script *Script, e
 		err = errors.Wrap(apperr.ErrScriptGet, err.Error())
 	}
 
-	err = n.Db.WithContext(ctx).Raw(`
+	err = n.DB(ctx).Raw(`
 	select
 	      (select count(*) from alexa_intents where script_id = scripts.id)  as alexa_intents,
 	      (select count(*) from entity_actions where script_id = scripts.id) as entity_actions,
@@ -133,7 +133,7 @@ func (n Scripts) GetById(ctx context.Context, scriptId int64) (script *Script, e
 // GetByName ...
 func (n Scripts) GetByName(ctx context.Context, name string) (script *Script, err error) {
 	script = &Script{}
-	err = n.Db.WithContext(ctx).Model(script).
+	err = n.DB(ctx).Model(script).
 		Where("name = ?", name).
 		Preload("Versions").
 		First(&script).Error
@@ -146,7 +146,7 @@ func (n Scripts) GetByName(ctx context.Context, name string) (script *Script, er
 		err = errors.Wrap(apperr.ErrScriptGet, err.Error())
 	}
 
-	err = n.Db.WithContext(ctx).Raw(`
+	err = n.DB(ctx).Raw(`
 	select 
 	      (select count(*) from alexa_intents where script_id = scripts.id)  as alexa_intents,
 	      (select count(*) from entity_actions where script_id = scripts.id) as entity_actions,
@@ -163,7 +163,7 @@ func (n Scripts) GetByName(ctx context.Context, name string) (script *Script, er
 
 // Update ...
 func (n Scripts) Update(ctx context.Context, script *Script) (err error) {
-	err = n.Db.WithContext(ctx).Model(&Script{Id: script.Id}).Updates(map[string]interface{}{
+	err = n.DB(ctx).Model(&Script{Id: script.Id}).Updates(map[string]interface{}{
 		"name":        script.Name,
 		"description": script.Description,
 		"lang":        script.Lang,
@@ -194,7 +194,7 @@ func (n Scripts) Update(ctx context.Context, script *Script) (err error) {
 		ScriptId: script.Id,
 		Sum:      []byte(hex.EncodeToString(hash[:])),
 	}
-	if err = n.Db.WithContext(ctx).Create(version).Error; err != nil {
+	if err = n.DB(ctx).Create(version).Error; err != nil {
 		err = errors.Wrap(apperr.ErrScriptVersionAdd, err.Error())
 		return
 	}
@@ -207,7 +207,7 @@ where id not in (
     order by created_at desc
     limit 10
 ) and script_id = ?`
-	if _, err = n.Db.WithContext(ctx).Raw(q, script.Id, script.Id).Rows(); err != nil {
+	if _, err = n.DB(ctx).Raw(q, script.Id, script.Id).Rows(); err != nil {
 		err = errors.Wrap(apperr.ErrScriptVersionDelete, err.Error())
 		return
 	}
@@ -217,7 +217,7 @@ where id not in (
 
 // Delete ...
 func (n Scripts) Delete(ctx context.Context, scriptId int64) (err error) {
-	if err = n.Db.WithContext(ctx).Delete(&Script{Id: scriptId}).Error; err != nil {
+	if err = n.DB(ctx).Delete(&Script{Id: scriptId}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrScriptDelete, err.Error())
 	}
 	return
@@ -227,7 +227,7 @@ func (n Scripts) Delete(ctx context.Context, scriptId int64) (err error) {
 func (n *Scripts) List(ctx context.Context, limit, offset int, orderBy, sort string, query *string, ids *[]uint64) (list []*Script, total int64, err error) {
 
 	list = make([]*Script, 0)
-	q := n.Db.WithContext(ctx).Model(Script{})
+	q := n.DB(ctx).Model(Script{})
 	if query != nil {
 		q = q.Where("name LIKE ? or source LIKE ?", "%"+*query+"%", "%"+*query+"%")
 	}
@@ -253,7 +253,7 @@ func (n *Scripts) List(ctx context.Context, limit, offset int, orderBy, sort str
 // Search ...
 func (n *Scripts) Search(ctx context.Context, query string, limit, offset int) (list []*Script, total int64, err error) {
 
-	q := n.Db.WithContext(ctx).Model(&Script{}).
+	q := n.DB(ctx).Model(&Script{}).
 		Where("name LIKE ?", "%"+query+"%")
 
 	if err = q.Count(&total).Error; err != nil {
@@ -282,7 +282,7 @@ func (n *Scripts) Statistic(ctx context.Context) (statistic *ScriptsStatistic, e
 		Count int32
 		Used  bool
 	}
-	err = n.Db.WithContext(ctx).Raw(`
+	err = n.DB(ctx).Raw(`
 select count(scripts.id),
        (exists(select * from alexa_intents where script_id = scripts.id) or 
         exists(select * from entity_actions where script_id = scripts.id) or
@@ -314,7 +314,7 @@ group by used`).
 		Lang  string
 		Count int32
 	}
-	err = n.Db.WithContext(ctx).Raw(`
+	err = n.DB(ctx).Raw(`
 select scripts.lang, count(scripts.*)
 		from scripts
 		group by lang`).

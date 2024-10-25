@@ -37,10 +37,7 @@ func NewMigrationMdns(adaptors *adaptors.Adaptors) *MigrationMdns {
 	}
 }
 
-func (n *MigrationMdns) Up(ctx context.Context, adaptors *adaptors.Adaptors) error {
-	if adaptors != nil {
-		n.adaptors = adaptors
-	}
+func (n *MigrationMdns) Up(ctx context.Context) error {
 
 	return n.addPlugin(ctx, "mdns", false, false, true, webhook.Version)
 }

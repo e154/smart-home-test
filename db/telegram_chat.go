@@ -27,12 +27,11 @@ import (
 
 	"github.com/e154/smart-home/common"
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 )
 
 // TelegramChats ...
 type TelegramChats struct {
-	Db *gorm.DB
+	*Common
 }
 
 // TelegramChat ...
@@ -50,7 +49,7 @@ func (d *TelegramChat) TableName() string {
 
 // Add ...
 func (n TelegramChats) Add(ctx context.Context, ch TelegramChat) (err error) {
-	if err = n.Db.WithContext(ctx).Create(&ch).Error; err != nil {
+	if err = n.DB(ctx).Create(&ch).Error; err != nil {
 		err = errors.Wrap(apperr.ErrChatAdd, err.Error())
 	}
 	return
@@ -58,7 +57,7 @@ func (n TelegramChats) Add(ctx context.Context, ch TelegramChat) (err error) {
 
 // Delete ...
 func (n TelegramChats) Delete(ctx context.Context, entityId common.EntityId, chatId int64) (err error) {
-	err = n.Db.WithContext(ctx).Delete(&TelegramChat{}, "entity_id = ? and chat_id = ?", entityId, chatId).Error
+	err = n.DB(ctx).Delete(&TelegramChat{}, "entity_id = ? and chat_id = ?", entityId, chatId).Error
 	if err != nil {
 		err = errors.Wrap(apperr.ErrChatDelete, err.Error())
 	}
@@ -68,7 +67,7 @@ func (n TelegramChats) Delete(ctx context.Context, entityId common.EntityId, cha
 // List ...
 func (n *TelegramChats) List(ctx context.Context, limit, offset int, orderBy, sort string, entityId common.EntityId) (list []TelegramChat, total int64, err error) {
 
-	q := n.Db.WithContext(ctx).Model(&TelegramChat{}).
+	q := n.DB(ctx).Model(&TelegramChat{}).
 		Where("entity_id = ?", entityId)
 
 	if err = q.Count(&total).Error; err != nil {

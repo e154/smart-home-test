@@ -22,16 +22,14 @@ import (
 	"context"
 	"time"
 
-	"github.com/pkg/errors"
-	"gorm.io/gorm"
-
 	. "github.com/e154/smart-home/common"
 	"github.com/e154/smart-home/common/apperr"
+	"github.com/pkg/errors"
 )
 
 // ScriptVersions ...
 type ScriptVersions struct {
-	Db *gorm.DB
+	*Common
 }
 
 // ScriptVersion ...
@@ -51,7 +49,7 @@ func (d *ScriptVersion) TableName() string {
 
 // Delete ...
 func (n ScriptVersions) Delete(ctx context.Context, id int64) (err error) {
-	if err = n.Db.WithContext(ctx).Delete(&ScriptVersion{Id: id}).Error; err != nil {
+	if err = n.DB(ctx).Delete(&ScriptVersion{Id: id}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrScriptVersionDelete, err.Error())
 	}
 	return

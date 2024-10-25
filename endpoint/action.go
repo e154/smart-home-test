@@ -130,7 +130,7 @@ func (n *ActionEndpoint) Delete(ctx context.Context, id int64) (err error) {
 		Id: id,
 	})
 
-	log.Infof("action id %d was deleted", id)
+	log.Infof("action id:(%d) was deleted", id)
 
 	return
 }

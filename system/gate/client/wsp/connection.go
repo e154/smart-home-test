@@ -179,7 +179,7 @@ func (c *Connection) serve(ctx context.Context) {
 			var user *m.User
 			user, err = c.pool.GetUser(accessToken)
 			if err != nil {
-				log.Error(apperr.ErrAccessDenied.Error())
+				log.Warn(apperr.ErrAccessDenied.Error())
 				return
 			}
 			c.stream.NewConnection(c.ws, user)

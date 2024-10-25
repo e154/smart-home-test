@@ -20,13 +20,14 @@ package endpoint
 
 import (
 	"context"
+	"strings"
 
-	"github.com/e154/smart-home/common/apperr"
-
-	"github.com/e154/smart-home/common"
-	m "github.com/e154/smart-home/models"
 	"github.com/jinzhu/copier"
 	"github.com/pkg/errors"
+
+	"github.com/e154/smart-home/common"
+	"github.com/e154/smart-home/common/apperr"
+	m "github.com/e154/smart-home/models"
 )
 
 // DashboardCardEndpoint ...
@@ -95,8 +96,20 @@ func (i *DashboardCardEndpoint) Update(ctx context.Context, params *m.DashboardC
 		return
 	}
 
-	if err = i.adaptors.DashboardCard.Update(ctx, card); err != nil {
-		return
+	err = i.adaptors.Transaction.Do(ctx, func(ctx context.Context) error {
+		if err = i.adaptors.DashboardCard.Update(ctx, card); err != nil {
+			return err
+		}
+		for _, item := range params.Items {
+			if err = i.adaptors.DashboardCardItem.Update(ctx, item); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
 	if result, err = i.adaptors.DashboardCard.GetById(ctx, params.Id); err != nil {
@@ -135,7 +148,7 @@ func (c *DashboardCardEndpoint) Delete(ctx context.Context, id int64) (err error
 		return
 	}
 
-	log.Infof("dashboard card id %d was deleted", id)
+	log.Infof("dashboard card id:(%d) was deleted", id)
 
 	return
 }
@@ -144,8 +157,34 @@ func (c *DashboardCardEndpoint) Delete(ctx context.Context, id int64) (err error
 func (c *DashboardCardEndpoint) Import(ctx context.Context, card *m.DashboardCard) (result *m.DashboardCard, err error) {
 
 	var cardId int64
-	if cardId, err = c.adaptors.DashboardCard.Import(ctx, card); err != nil {
-		return
+	err = c.adaptors.Transaction.Do(ctx, func(ctx context.Context) error {
+
+		card.Id = 0
+
+		if !strings.Contains(card.Title, "[IMPORTED]") {
+			card.Title = card.Title + " [IMPORTED]"
+		}
+
+		if cardId, err = c.adaptors.DashboardCard.Add(ctx, card); err != nil {
+			return err
+		}
+
+		// items
+		if len(card.Items) > 0 {
+			for _, item := range card.Items {
+				item.Id = 0
+				item.DashboardCardId = cardId
+				if _, err = c.adaptors.DashboardCardItem.Add(ctx, item); err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
 	if result, err = c.adaptors.DashboardCard.GetById(ctx, cardId); err != nil {

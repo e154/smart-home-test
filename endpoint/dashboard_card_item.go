@@ -21,11 +21,11 @@ package endpoint
 import (
 	"context"
 
-	"github.com/e154/smart-home/common/apperr"
+	"github.com/jinzhu/copier"
 
 	"github.com/e154/smart-home/common"
+	"github.com/e154/smart-home/common/apperr"
 	m "github.com/e154/smart-home/models"
-	"github.com/jinzhu/copier"
 )
 
 // DashboardCardItemEndpoint ...
@@ -121,7 +121,7 @@ func (c *DashboardCardItemEndpoint) Delete(ctx context.Context, id int64) (err e
 		return
 	}
 
-	log.Infof("dashboard card item id %d was deleted", id)
+	log.Infof("dashboard card item id:(%d) was deleted", id)
 
 	return
 }

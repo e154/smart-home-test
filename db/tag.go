@@ -32,7 +32,7 @@ import (
 
 // Tags ...
 type Tags struct {
-	Db *gorm.DB
+	*Common
 }
 
 // Tag ...
@@ -48,7 +48,8 @@ func (d *Tag) TableName() string {
 
 // Add ...
 func (n Tags) Add(ctx context.Context, tag *Tag) (id int64, err error) {
-	if err = n.Db.WithContext(ctx).Create(tag).Error; err != nil {
+
+	if err = n.DB(ctx).Create(tag).Error; err != nil {
 		err = errors.Wrap(apperr.ErrTagAdd, err.Error())
 		return
 	}
@@ -60,7 +61,7 @@ func (n Tags) Add(ctx context.Context, tag *Tag) (id int64, err error) {
 func (n *Tags) List(ctx context.Context, limit, offset int, orderBy, sort string, query *string, names *[]string) (list []*Tag, total int64, err error) {
 
 	list = make([]*Tag, 0)
-	q := n.Db.WithContext(ctx).Model(Tag{})
+	q := n.DB(ctx).Model(Tag{})
 	if query != nil {
 		q = q.Where("name LIKE ? or source LIKE ?", "%"+*query+"%", "%"+*query+"%")
 	}
@@ -85,8 +86,9 @@ func (n *Tags) List(ctx context.Context, limit, offset int, orderBy, sort string
 
 // GetByName ...
 func (n *Tags) GetByName(ctx context.Context, name string) (tag *Tag, err error) {
+
 	tag = &Tag{}
-	err = n.Db.WithContext(ctx).Model(tag).
+	err = n.DB(ctx).Model(tag).
 		Where("name = ?", name).
 		First(&tag).Error
 
@@ -104,7 +106,7 @@ func (n *Tags) GetByName(ctx context.Context, name string) (tag *Tag, err error)
 // GetById ...
 func (n *Tags) GetById(ctx context.Context, id int64) (tag *Tag, err error) {
 	tag = &Tag{}
-	err = n.Db.WithContext(ctx).Model(tag).
+	err = n.DB(ctx).Model(tag).
 		Where("id = ?", id).
 		First(&tag).Error
 
@@ -121,7 +123,7 @@ func (n *Tags) GetById(ctx context.Context, id int64) (tag *Tag, err error) {
 
 // Delete ...
 func (n *Tags) Delete(ctx context.Context, name string) (err error) {
-	if err = n.Db.WithContext(ctx).Delete(&Tag{Name: name}).Error; err != nil {
+	if err = n.DB(ctx).Delete(&Tag{Name: name}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrTagDelete, err.Error())
 	}
 	return
@@ -129,7 +131,7 @@ func (n *Tags) Delete(ctx context.Context, name string) (err error) {
 
 // Update ...
 func (n *Tags) Update(ctx context.Context, tag *Tag) (err error) {
-	err = n.Db.WithContext(ctx).Model(&Tag{Id: tag.Id}).Updates(map[string]interface{}{
+	err = n.DB(ctx).Model(&Tag{Id: tag.Id}).Updates(map[string]interface{}{
 		"name": tag.Name,
 	}).Error
 	if err != nil {
@@ -155,7 +157,7 @@ func (n *Tags) Update(ctx context.Context, tag *Tag) (err error) {
 // Search ...
 func (n *Tags) Search(ctx context.Context, query string, limit, offset int) (list []*Tag, total int64, err error) {
 
-	q := n.Db.WithContext(ctx).Model(&Tag{}).
+	q := n.DB(ctx).Model(&Tag{}).
 		Where("name LIKE ?", "%"+query+"%")
 
 	if err = q.Count(&total).Error; err != nil {

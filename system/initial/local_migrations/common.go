@@ -34,7 +34,7 @@ func AddVariableIfNotExist(adaptors *adaptors.Adaptors, ctx context.Context, nam
 		return
 	}
 
-	err = adaptors.Variable.Add(context.Background(), m.Variable{
+	err = adaptors.Variable.CreateOrUpdate(context.Background(), m.Variable{
 		Name:   name,
 		Value:  value,
 		System: true,

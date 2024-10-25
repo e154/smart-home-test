@@ -181,52 +181,52 @@ func (n *RoleEndpoint) UpdateAccessList(ctx context.Context, roleName string, ac
 		return
 	}
 
-	tx := n.adaptors.Begin()
-	defer func() {
-		if err != nil {
-			_ = tx.Rollback()
-		}
-	}()
+	err = n.adaptors.Transaction.Do(ctx, func(ctx context.Context) error {
 
-	addPerms := make([]*m.Permission, 0)
-	delPerms := make([]string, 0)
-	var exist bool
-	for packName, pack := range accessListDif {
-		for levelName, dir := range pack {
+		addPerms := make([]*m.Permission, 0)
+		delPerms := make([]string, 0)
+		var exist bool
+		for packName, pack := range accessListDif {
+			for levelName, dir := range pack {
 
-			exist = false
-			for _, lName := range role.AccessList[packName] {
-				if levelName == lName {
-					exist = true
+				exist = false
+				for _, lName := range role.AccessList[packName] {
+					if levelName == lName {
+						exist = true
+					}
+				}
+
+				if dir && !exist {
+					addPerms = append(addPerms, &m.Permission{
+						RoleName:    role.Name,
+						PackageName: packName,
+						LevelName:   levelName,
+					})
+				} else if !dir && exist {
+					delPerms = append(delPerms, levelName)
+				}
+
+				if len(delPerms) > 0 {
+					if err = n.adaptors.Permission.Delete(ctx, roleName, packName, delPerms); err != nil {
+						return err
+					}
+					delPerms = []string{}
 				}
 			}
+		}
 
-			if dir && !exist {
-				addPerms = append(addPerms, &m.Permission{
-					RoleName:    role.Name,
-					PackageName: packName,
-					LevelName:   levelName,
-				})
-			} else if !dir && exist {
-				delPerms = append(delPerms, levelName)
-			}
-
-			if len(delPerms) > 0 {
-				if err = tx.Permission.Delete(ctx, roleName, packName, delPerms); err != nil {
-					return
+		if len(addPerms) > 0 {
+			for _, perm := range addPerms {
+				if _, err = n.adaptors.Permission.Add(ctx, perm); err != nil {
+					return err
 				}
-				delPerms = []string{}
 			}
 		}
-	}
 
-	if len(addPerms) > 0 {
-		for _, perm := range addPerms {
-			_, _ = tx.Permission.Add(ctx, perm)
-		}
-	}
+		return nil
+	})
 
-	if err = tx.Commit(); err != nil {
+	if err != nil {
 		err = errors.Wrap(apperr.ErrInternal, err.Error())
 	}
 

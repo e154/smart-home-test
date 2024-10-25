@@ -26,12 +26,11 @@ import (
 	"github.com/e154/smart-home/common/apperr"
 
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 )
 
 // RunHistory ...
 type RunHistory struct {
-	Db *gorm.DB
+	*Common
 }
 
 // RunStory ...
@@ -48,7 +47,7 @@ func (d *RunStory) TableName() string {
 
 // Add ...
 func (n RunHistory) Add(ctx context.Context, story *RunStory) (id int64, err error) {
-	if err = n.Db.WithContext(ctx).Create(&story).Error; err != nil {
+	if err = n.DB(ctx).Create(&story).Error; err != nil {
 		err = errors.Wrap(apperr.ErrRunStoryAdd, err.Error())
 		return
 	}
@@ -61,7 +60,7 @@ func (n RunHistory) Update(ctx context.Context, m *RunStory) (err error) {
 	q := map[string]interface{}{
 		"end": m.End,
 	}
-	if err = n.Db.WithContext(ctx).Model(&RunStory{Id: m.Id}).Updates(q).Error; err != nil {
+	if err = n.DB(ctx).Model(&RunStory{Id: m.Id}).Updates(q).Error; err != nil {
 		err = errors.Wrap(apperr.ErrRunStoryUpdate, err.Error())
 	}
 	return
@@ -71,7 +70,7 @@ func (n RunHistory) Update(ctx context.Context, m *RunStory) (err error) {
 func (n *RunHistory) List(ctx context.Context, limit, offset int, orderBy, sort string, from *time.Time) (list []*RunStory, total int64, err error) {
 
 	list = make([]*RunStory, 0)
-	q := n.Db.WithContext(ctx).Model(&RunStory{})
+	q := n.DB(ctx).Model(&RunStory{})
 
 	if sort != "" && orderBy != "" {
 		q = q.
@@ -101,11 +100,11 @@ func (n *RunHistory) List(ctx context.Context, limit, offset int, orderBy, sort 
 // DeleteOldest ...
 func (n *RunHistory) DeleteOldest(ctx context.Context, days int) (err error) {
 	story := &RunStory{}
-	if err = n.Db.WithContext(ctx).Last(&story).Error; err != nil {
+	if err = n.DB(ctx).Last(&story).Error; err != nil {
 		err = errors.Wrap(apperr.ErrLogDelete, err.Error())
 		return
 	}
-	err = n.Db.WithContext(ctx).Delete(&RunStory{},
+	err = n.DB(ctx).Delete(&RunStory{},
 		fmt.Sprintf(`start < CAST('%s' AS DATE) - interval '%d days'`,
 			story.Start.UTC().Format("2006-01-02 15:04:05"), days)).Error
 	if err != nil {

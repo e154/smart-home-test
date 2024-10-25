@@ -31,7 +31,7 @@ import (
 
 // Templates ...
 type Templates struct {
-	Db *gorm.DB
+	*Common
 }
 
 // TemplateTree ...
@@ -62,7 +62,7 @@ func (d *Template) TableName() string {
 // UpdateOrCreate ...
 func (n Templates) UpdateOrCreate(ctx context.Context, tpl *Template) (err error) {
 
-	if err = n.Db.WithContext(ctx).Create(tpl).Error; err != nil {
+	if err = n.DB(ctx).Create(tpl).Error; err != nil {
 		if err = n.Update(ctx, tpl); err != nil {
 			err = errors.Wrap(apperr.ErrTemplateUpdate, err.Error())
 			return
@@ -74,7 +74,8 @@ func (n Templates) UpdateOrCreate(ctx context.Context, tpl *Template) (err error
 
 // Create ...
 func (n Templates) Create(ctx context.Context, tpl *Template) (err error) {
-	if err = n.Db.WithContext(ctx).Create(tpl).Error; err != nil {
+
+	if err = n.DB(ctx).Create(tpl).Error; err != nil {
 		err = errors.Wrap(apperr.ErrTemplateAdd, err.Error())
 	}
 	return
@@ -84,7 +85,7 @@ func (n Templates) Create(ctx context.Context, tpl *Template) (err error) {
 func (n Templates) GetByName(ctx context.Context, name, itemType string) (*Template, error) {
 
 	tpl := &Template{}
-	err := n.Db.WithContext(ctx).Model(tpl).
+	err := n.DB(ctx).Model(tpl).
 		Where("name = ? and type = ?", name, itemType).
 		First(&tpl).Error
 
@@ -103,7 +104,7 @@ func (n Templates) GetByName(ctx context.Context, name, itemType string) (*Templ
 func (n Templates) GetItemsSortedList(ctx context.Context) (count int64, newItems []string, err error) {
 
 	items := make([]*Template, 0)
-	err = n.Db.WithContext(ctx).Model(&Template{}).
+	err = n.DB(ctx).Model(&Template{}).
 		Where("type = 'item' and status = 'active'").
 		Find(&items).
 		Error
@@ -138,7 +139,7 @@ func (n Templates) GetItemsSortedList(ctx context.Context) (count int64, newItem
 
 // Update ...
 func (n Templates) Update(ctx context.Context, m *Template) error {
-	err := n.Db.WithContext(ctx).Model(&Template{Name: m.Name}).Updates(map[string]interface{}{
+	err := n.DB(ctx).Model(&Template{Name: m.Name}).Updates(map[string]interface{}{
 		"name":        m.Name,
 		"description": m.Description,
 		"status":      m.Status,
@@ -155,7 +156,7 @@ func (n Templates) Update(ctx context.Context, m *Template) error {
 
 // UpdateStatus ...
 func (n Templates) UpdateStatus(ctx context.Context, m *Template) error {
-	err := n.Db.WithContext(ctx).Model(&Template{Name: m.Name}).Updates(map[string]interface{}{
+	err := n.DB(ctx).Model(&Template{Name: m.Name}).Updates(map[string]interface{}{
 		"status": m.Status,
 	}).Error
 
@@ -167,7 +168,7 @@ func (n Templates) UpdateStatus(ctx context.Context, m *Template) error {
 
 // Delete ...
 func (n Templates) Delete(ctx context.Context, name string) (err error) {
-	if err = n.Db.WithContext(ctx).Delete(&Template{Name: name}).Error; err != nil {
+	if err = n.DB(ctx).Delete(&Template{Name: name}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrTemplateDelete, err.Error())
 	}
 	return
@@ -202,7 +203,7 @@ func (n Templates) GetItemsTree(ctx context.Context) (tree []*TemplateTree, err 
 // GetList ...
 func (n Templates) GetList(ctx context.Context, templateType string) ([]*Template, error) {
 	items := make([]*Template, 0)
-	err := n.Db.WithContext(ctx).Model(&Template{}).
+	err := n.DB(ctx).Model(&Template{}).
 		Where("type = ?", templateType).
 		Find(&items).
 		Error
@@ -217,7 +218,7 @@ func (n Templates) GetList(ctx context.Context, templateType string) ([]*Templat
 // Search ...
 func (n *Templates) Search(ctx context.Context, query string, limit, offset int) (items []*Template, total int64, err error) {
 
-	q := n.Db.WithContext(ctx).Model(&Template{}).
+	q := n.DB(ctx).Model(&Template{}).
 		Where("name LIKE ?", "%"+query+"%").
 		Where("type = 'template'")
 
@@ -262,7 +263,7 @@ func (n Templates) UpdateItemsTree(ctx context.Context, tree []*TemplateTree, pa
 			go n.emailItemParentUpdate(ctx, v.Name, parent)
 		}
 
-		err := n.Db.WithContext(ctx).Model(&Template{Name: v.Name}).Updates(map[string]interface{}{
+		err := n.DB(ctx).Model(&Template{Name: v.Name}).Updates(map[string]interface{}{
 			"parent": nil,
 		}).Error
 		if err != nil {
@@ -281,7 +282,7 @@ func (n Templates) UpdateItemsTree(ctx context.Context, tree []*TemplateTree, pa
 
 func (n Templates) emailItemParentUpdate(ctx context.Context, name, parent string) {
 
-	_ = n.Db.WithContext(ctx).Model(&Template{}).
+	_ = n.DB(ctx).Model(&Template{}).
 		Where("name = ?", name).
 		Updates(map[string]interface{}{
 			"parent": parent,

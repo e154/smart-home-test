@@ -37,10 +37,7 @@ func NewMigrationWebdav(adaptors *adaptors.Adaptors) *MigrationWebdav {
 	}
 }
 
-func (n *MigrationWebdav) Up(ctx context.Context, adaptors *adaptors.Adaptors) error {
-	if adaptors != nil {
-		n.adaptors = adaptors
-	}
+func (n *MigrationWebdav) Up(ctx context.Context) error {
 
 	return n.addPlugin(ctx, "webdav", false, false, false, webdav.Version)
 }

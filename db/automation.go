@@ -22,14 +22,13 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 
 	"github.com/e154/smart-home/common/apperr"
 )
 
 // Automation ...
 type Automation struct {
-	Db *gorm.DB
+	*Common
 }
 
 type AutomationStatistic struct {
@@ -46,7 +45,7 @@ func (n *Automation) Statistic(ctx context.Context) (statistic *AutomationStatis
 
 	statistic = &AutomationStatistic{}
 
-	err = n.Db.WithContext(ctx).Raw(`
+	err = n.DB(ctx).Raw(`
 select tasks_total.count as tasks_total, tasks_enabled.count as tasks_enabled,
        triggers_total.count as triggers_total, triggers_enabled.count as triggers_enabled,
        conditions_total.count as conditions_total, actions_total.count as actions_total

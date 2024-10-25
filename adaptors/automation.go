@@ -21,44 +21,10 @@ package adaptors
 import (
 	"context"
 
-	"gorm.io/gorm"
-
-	"github.com/e154/smart-home/db"
 	m "github.com/e154/smart-home/models"
 )
 
-// IAutomation ...
-type IAutomation interface {
+// AutomationRepo ...
+type AutomationRepo interface {
 	Statistic(ctx context.Context) (statistic *m.AutomationStatistic, err error)
-}
-
-// Automation ...
-type Automation struct {
-	IAutomation
-	table *db.Automation
-	db    *gorm.DB
-}
-
-// GetAutomationAdaptor ...
-func GetAutomationAdaptor(d *gorm.DB) IAutomation {
-	return &Automation{
-		table: &db.Automation{Db: d},
-		db:    d,
-	}
-}
-
-func (n *Automation) Statistic(ctx context.Context) (statistic *m.AutomationStatistic, err error) {
-	var dbVer *db.AutomationStatistic
-	if dbVer, err = n.table.Statistic(ctx); err != nil {
-		return
-	}
-	statistic = &m.AutomationStatistic{
-		TasksTotal:      dbVer.TasksTotal,
-		TasksEnabled:    dbVer.TasksEnabled,
-		TriggersTotal:   dbVer.TriggersTotal,
-		TriggersEnabled: dbVer.TriggersEnabled,
-		ConditionsTotal: dbVer.ConditionsTotal,
-		ActionsTotal:    dbVer.ActionsTotal,
-	}
-	return
 }

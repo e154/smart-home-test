@@ -1,6 +1,6 @@
 // This file is part of the Smart Home
 // Program complex distribution https://github.com/e154/smart-home
-// Copyright (C) 2016-2023, Filippov Alex
+// Copyright (C) 2024, Filippov Alex
 //
 // This library is free software: you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -18,147 +18,43 @@
 
 package adaptors
 
-import (
-	"context"
-
-	"go.uber.org/fx"
-	"gorm.io/gorm"
-
-	"github.com/e154/smart-home/common/logger"
-	"github.com/e154/smart-home/models"
-	"github.com/e154/smart-home/system/migrations"
-	"github.com/e154/smart-home/system/orm"
-)
-
-var (
-	log = logger.MustGetLogger("adaptors")
-)
-
-// Adaptors ...
 type Adaptors struct {
-	db                *gorm.DB
-	isTx              bool
-	Script            IScript
-	Tag               ITag
-	Role              IRole
-	Permission        IPermission
-	User              IUser
-	UserMeta          IUserMeta
-	UserDevice        IUserDevice
-	Image             IImage
-	Variable          IVariable
-	Entity            IEntity
-	EntityState       IEntityState
-	EntityAction      IEntityAction
-	EntityStorage     IEntityStorage
-	Log               ILog
-	Template          ITemplate
-	Message           IMessage
-	MessageDelivery   IMessageDelivery
-	Zigbee2mqtt       IZigbee2mqtt
-	Zigbee2mqttDevice IZigbee2mqttDevice
-	AlexaSkill        IAlexaSkill
-	AlexaIntent       IAlexaIntent
-	Metric            IMetric
-	MetricBucket      IMetricBucket
-	Area              IArea
-	Action            IAction
-	Condition         ICondition
-	Trigger           ITrigger
-	Task              ITask
-	RunHistory        IRunHistory
-	Plugin            IPlugin
-	TelegramChat      ITelegramChat
-	Dashboard         IDashboard
-	DashboardTab      IDashboardTab
+	Script            ScriptRepo
+	Tag               TagRepo
+	Role              RoleRepo
+	Permission        PermissionRepo
+	User              UserRepo
+	UserMeta          UserMetaRepo
+	UserDevice        UserDeviceRepo
+	Image             ImageRepo
+	Variable          VariableRepo
+	Entity            EntityRepo
+	EntityState       EntityStateRepo
+	EntityAction      EntityActionRepo
+	EntityStorage     EntityStorageRepo
+	Log               LogRepo
+	Template          TemplateRepo
+	Message           MessageRepo
+	MessageDelivery   MessageDeliveryRepo
+	Zigbee2mqtt       Zigbee2mqttRepo
+	Zigbee2mqttDevice Zigbee2mqttDeviceRepo
+	AlexaSkill        AlexaSkillRepo
+	AlexaIntent       AlexaIntentRepo
+	Metric            MetricRepo
+	MetricBucket      MetricBucketRepo
+	Area              AreaRepo
+	Action            ActionRepo
+	Condition         ConditionRepo
+	Trigger           TriggerRepo
+	Task              TaskRepo
+	RunHistory        RunHistoryRepo
+	Plugin            PluginRepo
+	TelegramChat      TelegramChatRepo
+	Dashboard         DashboardRepo
+	DashboardTab      DashboardTabRepo
 	DashboardCard     IDashboardCard
-	DashboardCardItem IDashboardCardItem
-	ScriptVersion     IScriptVersion
-	Automation        IAutomation
-}
-
-// NewAdaptors ...
-func NewAdaptors(lc fx.Lifecycle,
-	db *gorm.DB,
-	cfg *models.AppConfig,
-	migrations *migrations.Migrations,
-	orm *orm.Orm) (adaptors *Adaptors) {
-
-	adaptors = &Adaptors{
-		db:                db,
-		Script:            GetScriptAdaptor(db),
-		Tag:               GetTagAdaptor(db),
-		Role:              GetRoleAdaptor(db),
-		Permission:        GetPermissionAdaptor(db),
-		User:              GetUserAdaptor(db),
-		UserMeta:          GetUserMetaAdaptor(db),
-		UserDevice:        GetUserDeviceAdaptor(db),
-		Image:             GetImageAdaptor(db),
-		Variable:          GetVariableAdaptor(db),
-		Entity:            GetEntityAdaptor(db, orm),
-		EntityState:       GetEntityStateAdaptor(db),
-		EntityAction:      GetEntityActionAdaptor(db),
-		EntityStorage:     GetEntityStorageAdaptor(db),
-		Log:               GetLogAdaptor(db),
-		Template:          GetTemplateAdaptor(db),
-		Message:           GetMessageAdaptor(db),
-		MessageDelivery:   GetMessageDeliveryAdaptor(db),
-		Zigbee2mqtt:       GetZigbee2mqttAdaptor(db),
-		Zigbee2mqttDevice: GetZigbee2mqttDeviceAdaptor(db),
-		AlexaSkill:        GetAlexaSkillAdaptor(db),
-		AlexaIntent:       GetAlexaIntentAdaptor(db),
-		Metric:            GetMetricAdaptor(db, orm),
-		MetricBucket:      GetMetricBucketAdaptor(db, orm),
-		Area:              GetAreaAdaptor(db),
-		Action:            GetActionAdaptor(db, orm),
-		Condition:         GetConditionAdaptor(db),
-		Trigger:           GetTriggerAdaptor(db, orm),
-		Task:              GetTaskAdaptor(db, orm),
-		RunHistory:        GetRunHistoryAdaptor(db),
-		Plugin:            GetPluginAdaptor(db),
-		TelegramChat:      GetTelegramChannelAdaptor(db),
-		Dashboard:         GetDashboardAdaptor(db),
-		DashboardTab:      GetDashboardTabAdaptor(db),
-		DashboardCard:     GetDashboardCardAdaptor(db),
-		DashboardCardItem: GetDashboardCardItemAdaptor(db),
-		ScriptVersion:     GetScriptVersionAdaptor(db),
-		Automation:        GetAutomationAdaptor(db),
-	}
-
-	if lc != nil {
-		lc.Append(fx.Hook{
-			OnStart: func(ctx context.Context) (err error) {
-				if cfg != nil && migrations != nil && cfg.AutoMigrate {
-					err = migrations.Up()
-					return
-				}
-				return
-			},
-		})
-	}
-
-	return
-}
-
-// Begin ...
-func (a Adaptors) Begin() (adaptors *Adaptors) {
-	adaptors = NewAdaptors(nil, a.db.Begin(), nil, nil, nil)
-	adaptors.isTx = true
-	return
-}
-
-// Commit ...
-func (a *Adaptors) Commit() error {
-	if !a.isTx {
-		return nil
-	}
-	return a.db.Commit().Error
-}
-
-// Rollback ...
-func (a *Adaptors) Rollback() error {
-	if !a.isTx {
-		return nil
-	}
-	return a.db.Rollback().Error
+	DashboardCardItem DashboardCardItemRepo
+	ScriptVersion     ScriptVersionRepo
+	Automation        AutomationRepo
+	Transaction       TransactionManger
 }

@@ -23,6 +23,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/e154/smart-home/endpoint"
 	"go.uber.org/fx"
 	"gorm.io/gorm"
 
@@ -62,6 +63,7 @@ type Initial struct {
 	accessList      access_list.AccessListService
 	supervisor      supervisor.Supervisor
 	automation      automation.Automation
+	endpoint        *endpoint.Endpoint
 	api             *api.Api
 	gateClient      *client.GateClient
 	validation      *validation.Validate
@@ -78,6 +80,7 @@ func NewInitial(lc fx.Lifecycle,
 	accessList access_list.AccessListService,
 	supervisor supervisor.Supervisor,
 	automation automation.Automation,
+	endpoint *endpoint.Endpoint,
 	api *api.Api,
 	gateClient *client.GateClient,
 	validation *validation.Validate,
@@ -95,6 +98,7 @@ func NewInitial(lc fx.Lifecycle,
 		accessList:      accessList,
 		supervisor:      supervisor,
 		automation:      automation,
+		endpoint:        endpoint,
 		api:             api,
 		gateClient:      gateClient,
 		validation:      validation,
@@ -119,22 +123,24 @@ func (n *Initial) InstallDemoData() {
 
 	log.Info("install demo data")
 
-	tx := n.adaptors.Begin()
+	err := n.adaptors.Transaction.Do(context.Background(), func(ctx context.Context) error {
+		if err := n.demo.InstallByName(ctx, "example1"); err != nil {
+			log.Errorf("\n\nmigration '%s' ... error", err.Error())
+			return err
+		}
+		return nil
+	})
 
-	// install demo
-	_ = n.demo.InstallByName(context.TODO(), tx, "example1")
-
-	_ = tx.Commit()
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
 
 	log.Info("complete")
 }
 
 // checkForUpgrade ...
 func (n *Initial) checkForUpgrade() {
-
-	defer func() {
-		fmt.Println("")
-	}()
 
 	const name = "initialVersion"
 	v, err := n.adaptors.Variable.GetByName(context.Background(), name)
@@ -143,10 +149,10 @@ func (n *Initial) checkForUpgrade() {
 		if errors.Is(err, apperr.ErrNotFound) {
 			v = m.Variable{
 				Name:   name,
-				Value:  fmt.Sprintf("%d", 1),
+				Value:  "*local_migrations.MigrationInit",
 				System: true,
 			}
-			err = n.adaptors.Variable.Add(context.Background(), v)
+			err = n.adaptors.Variable.CreateOrUpdate(context.Background(), v)
 			So(err, ShouldBeNil)
 		}
 	}
@@ -155,13 +161,17 @@ func (n *Initial) checkForUpgrade() {
 	So(err, ShouldBeNil)
 
 	var currentVersion string
+	defer func() {
+		fmt.Println("")
+
+		v.Value = currentVersion
+		err = n.adaptors.Variable.CreateOrUpdate(context.Background(), v)
+		So(err, ShouldBeNil)
+	}()
+
 	if currentVersion, err = n.localMigrations.Up(context.TODO(), n.adaptors, oldVersion); err != nil {
 		return
 	}
-
-	v.Value = currentVersion
-	err = n.adaptors.Variable.Update(context.Background(), v)
-	So(err, ShouldBeNil)
 }
 
 // Start ...

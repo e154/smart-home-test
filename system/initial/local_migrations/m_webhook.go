@@ -37,10 +37,7 @@ func NewMigrationWebhook(adaptors *adaptors.Adaptors) *MigrationWebhook {
 	}
 }
 
-func (n *MigrationWebhook) Up(ctx context.Context, adaptors *adaptors.Adaptors) error {
-	if adaptors != nil {
-		n.adaptors = adaptors
-	}
+func (n *MigrationWebhook) Up(ctx context.Context) error {
 
 	return n.addPlugin(ctx, "webhook", false, false, true, webhook.Version)
 }

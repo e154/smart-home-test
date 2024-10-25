@@ -37,10 +37,7 @@ func NewMigrationEntity(adaptors *adaptors.Adaptors, endpoint *endpoint.Endpoint
 	}
 }
 
-func (n *MigrationEntity) Up(ctx context.Context, adaptors *adaptors.Adaptors) error {
-	if adaptors != nil {
-		n.adaptors = adaptors
-	}
+func (n *MigrationEntity) Up(ctx context.Context) error {
 
 	return nil
 }

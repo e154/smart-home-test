@@ -20,7 +20,7 @@ package container
 
 import (
 	"github.com/e154/bus"
-	"github.com/e154/smart-home/adaptors"
+	"github.com/e154/smart-home/adaptors/gorm"
 	"github.com/e154/smart-home/common/web"
 	"github.com/e154/smart-home/endpoint"
 	"github.com/e154/smart-home/system/access_list"
@@ -58,7 +58,7 @@ func BuildContainer() (container *dig.Container) {
 	_ = container.Provide(orm.NewOrm)
 	_ = container.Provide(NewMigrationsConfig)
 	_ = container.Provide(migrations.NewMigrations)
-	_ = container.Provide(adaptors.NewAdaptors)
+	_ = container.Provide(gorm.NewAdaptors)
 	_ = container.Provide(scheduler.NewScheduler)
 	_ = container.Provide(scripts.NewScriptService)
 	_ = container.Provide(MigrationList)

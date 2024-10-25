@@ -36,10 +36,7 @@ func NewMigrationRoleNobody(adaptors *adaptors.Adaptors) *MigrationRoleNobody {
 	}
 }
 
-func (r *MigrationRoleNobody) Up(ctx context.Context, adaptors *adaptors.Adaptors) (err error) {
-	if adaptors != nil {
-		r.adaptors = adaptors
-	}
+func (r *MigrationRoleNobody) Up(ctx context.Context) (err error) {
 
 	_, err = r.add(ctx)
 

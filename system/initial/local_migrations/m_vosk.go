@@ -38,7 +38,7 @@ func NewMigrationVosk(adaptors *adaptors.Adaptors) *MigrationVosk {
 	}
 }
 
-func (n *MigrationVosk) Up(ctx context.Context, adaptors *adaptors.Adaptors) error {
+func (n *MigrationVosk) Up(ctx context.Context) error {
 	err := n.adaptors.Plugin.CreateOrUpdate(ctx, &m.Plugin{
 		Name:     "vosk",
 		Version:  "0.0.1",

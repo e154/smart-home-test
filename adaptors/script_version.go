@@ -20,34 +20,9 @@ package adaptors
 
 import (
 	"context"
-
-	"github.com/e154/smart-home/db"
-	"gorm.io/gorm"
 )
 
-// IScriptVersion ...
-type IScriptVersion interface {
+// ScriptVersionRepo ...
+type ScriptVersionRepo interface {
 	Delete(ctx context.Context, id int64) (err error)
-	DeleteOldest(ctx context.Context, days int) (err error)
-}
-
-// ScriptVersion ...
-type ScriptVersion struct {
-	IScriptVersion
-	table *db.ScriptVersions
-	db    *gorm.DB
-}
-
-// GetScriptVersionAdaptor ...
-func GetScriptVersionAdaptor(d *gorm.DB) IScriptVersion {
-	return &ScriptVersion{
-		table: &db.ScriptVersions{Db: d},
-		db:    d,
-	}
-}
-
-// Delete ...
-func (n *ScriptVersion) Delete(ctx context.Context, id int64) (err error) {
-	err = n.table.Delete(ctx, id)
-	return
 }

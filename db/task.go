@@ -32,7 +32,7 @@ import (
 
 // Tasks ...
 type Tasks struct {
-	Db *gorm.DB
+	*Common
 }
 
 // Task ...
@@ -58,7 +58,7 @@ func (d *Task) TableName() string {
 
 // Add ...
 func (n Tasks) Add(ctx context.Context, task *Task) (id int64, err error) {
-	err = n.Db.WithContext(ctx).
+	err = n.DB(ctx).
 		Omit("Triggers.*", "Conditions.*", "Actions.*").
 		Create(&task).Error
 	if err != nil {
@@ -72,7 +72,7 @@ func (n Tasks) Add(ctx context.Context, task *Task) (id int64, err error) {
 // GetById ...
 func (n Tasks) GetById(ctx context.Context, taskId int64) (task *Task, err error) {
 	task = &Task{}
-	err = n.Db.WithContext(ctx).Model(task).
+	err = n.DB(ctx).Model(task).
 		Where("id = ?", taskId).
 		Preload("Triggers").
 		Preload("Triggers.Script").
@@ -98,7 +98,7 @@ func (n Tasks) GetById(ctx context.Context, taskId int64) (task *Task, err error
 
 // Update ...
 func (n Tasks) Update(ctx context.Context, task *Task) (err error) {
-	err = n.Db.WithContext(ctx).
+	err = n.DB(ctx).
 		Omit("Triggers.*", "Conditions.*", "Actions.*").
 		Save(task).Error
 	if err != nil {
@@ -109,7 +109,7 @@ func (n Tasks) Update(ctx context.Context, task *Task) (err error) {
 
 // Delete ...
 func (n Tasks) Delete(ctx context.Context, id int64) (err error) {
-	if err = n.Db.WithContext(ctx).Delete(&Task{Id: id}).Error; err != nil {
+	if err = n.DB(ctx).Delete(&Task{Id: id}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrTaskDelete, err.Error())
 		return
 	}
@@ -118,7 +118,7 @@ func (n Tasks) Delete(ctx context.Context, id int64) (err error) {
 
 // Enable ...
 func (n Tasks) Enable(ctx context.Context, id int64) (err error) {
-	if err = n.Db.WithContext(ctx).Model(&Task{Id: id}).Updates(map[string]interface{}{"enabled": true}).Error; err != nil {
+	if err = n.DB(ctx).Model(&Task{Id: id}).Updates(map[string]interface{}{"enabled": true}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrTaskUpdate, err.Error())
 		return
 	}
@@ -127,7 +127,7 @@ func (n Tasks) Enable(ctx context.Context, id int64) (err error) {
 
 // Disable ...
 func (n Tasks) Disable(ctx context.Context, id int64) (err error) {
-	if err = n.Db.WithContext(ctx).Model(&Task{Id: id}).Updates(map[string]interface{}{"enabled": false}).Error; err != nil {
+	if err = n.DB(ctx).Model(&Task{Id: id}).Updates(map[string]interface{}{"enabled": false}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrTaskUpdate, err.Error())
 		return
 	}
@@ -138,7 +138,7 @@ func (n Tasks) Disable(ctx context.Context, id int64) (err error) {
 func (n Tasks) List(ctx context.Context, limit, offset int, orderBy, sort string, onlyEnabled bool) (list []*Task, total int64, err error) {
 
 	list = make([]*Task, 0)
-	q := n.Db.WithContext(ctx).Model(&Task{})
+	q := n.DB(ctx).Model(&Task{})
 
 	if onlyEnabled {
 		q = q.Where("enabled = ?", true)
@@ -175,7 +175,7 @@ func (n Tasks) List(ctx context.Context, limit, offset int, orderBy, sort string
 // Search ...
 func (n Tasks) Search(ctx context.Context, query string, limit, offset int) (list []*Task, total int64, err error) {
 
-	q := n.Db.WithContext(ctx).Model(&Task{}).
+	q := n.DB(ctx).Model(&Task{}).
 		Where("name LIKE ?", "%"+query+"%")
 
 	if err = q.Count(&total).Error; err != nil {
@@ -197,7 +197,7 @@ func (n Tasks) Search(ctx context.Context, query string, limit, offset int) (lis
 
 // DeleteTrigger ...
 func (n Tasks) DeleteTrigger(ctx context.Context, id int64) (err error) {
-	if err = n.Db.WithContext(ctx).Model(&Task{Id: id}).Association("Triggers").Clear(); err != nil {
+	if err = n.DB(ctx).Model(&Task{Id: id}).Association("Triggers").Clear(); err != nil {
 		err = errors.Wrap(apperr.ErrTaskDeleteTrigger, err.Error())
 	}
 	return
@@ -205,7 +205,7 @@ func (n Tasks) DeleteTrigger(ctx context.Context, id int64) (err error) {
 
 // DeleteCondition ...
 func (n Tasks) DeleteCondition(ctx context.Context, id int64) (err error) {
-	if err = n.Db.WithContext(ctx).Model(&Task{Id: id}).Association("Conditions").Clear(); err != nil {
+	if err = n.DB(ctx).Model(&Task{Id: id}).Association("Conditions").Clear(); err != nil {
 		err = errors.Wrap(apperr.ErrTaskDeleteCondition, err.Error())
 	}
 	return
@@ -213,7 +213,7 @@ func (n Tasks) DeleteCondition(ctx context.Context, id int64) (err error) {
 
 // DeleteAction ...
 func (n Tasks) DeleteAction(ctx context.Context, id int64) (err error) {
-	if err = n.Db.WithContext(ctx).Model(&Task{Id: id}).Association("Actions").Clear(); err != nil {
+	if err = n.DB(ctx).Model(&Task{Id: id}).Association("Actions").Clear(); err != nil {
 		err = errors.Wrap(apperr.ErrTaskDeleteAction, err.Error())
 	}
 	return

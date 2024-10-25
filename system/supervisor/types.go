@@ -19,6 +19,7 @@
 package supervisor
 
 import (
+	"bufio"
 	"context"
 	"io/fs"
 	"time"
@@ -68,6 +69,8 @@ type Supervisor interface {
 	GetService() Service
 	GetPluginReadme(context.Context, string, *string, *string) ([]byte, error)
 	PushSystemEvent(strCommand string, params map[string]interface{})
+	UploadPlugin(ctx context.Context, reader *bufio.Reader, fileName string) (newFile *m.Plugin, err error)
+	RemovePlugin(ctx context.Context, pluginName string) error
 }
 
 // PluginActor ...

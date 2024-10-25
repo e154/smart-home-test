@@ -22,7 +22,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/e154/smart-home/adaptors"
 	"github.com/e154/smart-home/common/logger"
 )
 
@@ -44,7 +43,7 @@ func NewDemos(list map[string]Demo) *Demos {
 	}
 }
 
-func (t *Demos) InstallByName(ctx context.Context, adaptors *adaptors.Adaptors, name string) (err error) {
+func (t *Demos) InstallByName(ctx context.Context, name string) (err error) {
 
 	if name == "" {
 		return
@@ -67,7 +66,7 @@ func (t *Demos) InstallByName(ctx context.Context, adaptors *adaptors.Adaptors, 
 		if err = ctx.Err(); err != nil {
 			return
 		}
-		if err = t.list[name].Install(ctx, adaptors); err != nil {
+		if err = t.list[name].Install(ctx); err != nil {
 			return
 		}
 	}()

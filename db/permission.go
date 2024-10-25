@@ -23,12 +23,11 @@ import (
 
 	"github.com/e154/smart-home/common/apperr"
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 )
 
 // Permissions ...
 type Permissions struct {
-	Db *gorm.DB
+	*Common
 }
 
 // Permission ...
@@ -47,7 +46,7 @@ func (m *Permission) TableName() string {
 
 // Add ...
 func (n Permissions) Add(ctx context.Context, permission *Permission) (id int64, err error) {
-	if err = n.Db.WithContext(ctx).Create(&permission).Error; err != nil {
+	if err = n.DB(ctx).Create(&permission).Error; err != nil {
 		err = errors.Wrap(apperr.ErrPermissionAdd, err.Error())
 		return
 	}
@@ -57,8 +56,7 @@ func (n Permissions) Add(ctx context.Context, permission *Permission) (id int64,
 
 // Delete ...
 func (n Permissions) Delete(ctx context.Context, roleName, packageName string, levelName []string) (err error) {
-
-	err = n.Db.WithContext(ctx).
+	err = n.DB(ctx).
 		Delete(&Permission{}, "role_name = ? and package_name = ? and level_name in (?)", roleName, packageName, levelName).
 		Error
 	if err != nil {
@@ -72,7 +70,7 @@ func (n Permissions) Delete(ctx context.Context, roleName, packageName string, l
 func (n Permissions) GetAllPermissions(ctx context.Context, name string) (permissions []*Permission, err error) {
 
 	permissions = make([]*Permission, 0)
-	err = n.Db.WithContext(ctx).Raw(`
+	err = n.DB(ctx).Raw(`
 WITH RECURSIVE r AS (
     SELECT name, description, parent, created_at, updated_at, 1 AS level
     FROM roles

@@ -35,6 +35,7 @@ func MigrationList(adaptors *adaptors.Adaptors,
 	orm *orm.Orm,
 	endpoint *endpoint.Endpoint) []local_migrations.Migration {
 	return []local_migrations.Migration{
+		local_migrations.NewMigrationInit(adaptors),
 		local_migrations.NewMigrationImages(adaptors, "./"),
 		local_migrations.NewMigrationTemplates(adaptors),
 		local_migrations.NewMigrationAreas(adaptors),

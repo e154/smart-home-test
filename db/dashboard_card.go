@@ -34,7 +34,7 @@ import (
 
 // DashboardCards ...
 type DashboardCards struct {
-	Db *gorm.DB
+	*Common
 }
 
 // DashboardCard ...
@@ -63,7 +63,7 @@ func (d *DashboardCard) TableName() string {
 
 // Add ...
 func (n DashboardCards) Add(ctx context.Context, card *DashboardCard) (id int64, err error) {
-	if err = n.Db.WithContext(ctx).Create(&card).Error; err != nil {
+	if err = n.DB(ctx).Create(&card).Error; err != nil {
 		err = errors.Wrap(apperr.ErrDashboardCardAdd, err.Error())
 		return
 	}
@@ -74,7 +74,7 @@ func (n DashboardCards) Add(ctx context.Context, card *DashboardCard) (id int64,
 // GetById ...
 func (n DashboardCards) GetById(ctx context.Context, id int64) (card *DashboardCard, err error) {
 	card = &DashboardCard{Id: id}
-	err = n.Db.WithContext(ctx).Model(card).
+	err = n.DB(ctx).Model(card).
 		Preload("Items").
 		First(&card).
 		Error
@@ -104,7 +104,7 @@ func (n DashboardCards) Update(ctx context.Context, m *DashboardCard) (err error
 		"entity_id":        m.EntityId,
 	}
 
-	if err = n.Db.WithContext(ctx).Model(&DashboardCard{Id: m.Id}).Updates(q).Error; err != nil {
+	if err = n.DB(ctx).Model(&DashboardCard{Id: m.Id}).Updates(q).Error; err != nil {
 		err = errors.Wrap(apperr.ErrDashboardCardUpdate, err.Error())
 	}
 	return
@@ -112,7 +112,7 @@ func (n DashboardCards) Update(ctx context.Context, m *DashboardCard) (err error
 
 // Delete ...
 func (n DashboardCards) Delete(ctx context.Context, id int64) (err error) {
-	if err = n.Db.WithContext(ctx).Delete(&DashboardCard{Id: id}).Error; err != nil {
+	if err = n.DB(ctx).Delete(&DashboardCard{Id: id}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrDashboardCardDelete, err.Error())
 	}
 	return
@@ -121,13 +121,13 @@ func (n DashboardCards) Delete(ctx context.Context, id int64) (err error) {
 // List ...
 func (n *DashboardCards) List(ctx context.Context, limit, offset int, orderBy, sort string) (list []*DashboardCard, total int64, err error) {
 
-	if err = n.Db.WithContext(ctx).Model(DashboardCard{}).Count(&total).Error; err != nil {
+	if err = n.DB(ctx).Model(DashboardCard{}).Count(&total).Error; err != nil {
 		err = errors.Wrap(apperr.ErrDashboardCardList, err.Error())
 		return
 	}
 
 	list = make([]*DashboardCard, 0)
-	q := n.Db.WithContext(ctx).Model(&DashboardCard{}).
+	q := n.DB(ctx).Model(&DashboardCard{}).
 		Preload("Items").
 		Limit(limit).
 		Offset(offset)

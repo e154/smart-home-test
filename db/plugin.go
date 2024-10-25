@@ -31,7 +31,7 @@ import (
 
 // Plugins ...
 type Plugins struct {
-	Db *gorm.DB
+	*Common
 }
 
 // Plugin ...
@@ -52,7 +52,7 @@ func (d Plugin) TableName() string {
 
 // Add ...
 func (n Plugins) Add(ctx context.Context, plugin *Plugin) (err error) {
-	if err = n.Db.WithContext(ctx).Create(&plugin).Error; err != nil {
+	if err = n.DB(ctx).Create(&plugin).Error; err != nil {
 		err = errors.Wrap(apperr.ErrPluginAdd, err.Error())
 		return
 	}
@@ -61,7 +61,7 @@ func (n Plugins) Add(ctx context.Context, plugin *Plugin) (err error) {
 
 // CreateOrUpdate ...
 func (n Plugins) CreateOrUpdate(ctx context.Context, v *Plugin) (err error) {
-	err = n.Db.WithContext(ctx).Model(&Plugin{}).Clauses(clause.OnConflict{
+	err = n.DB(ctx).Model(&Plugin{}).Clauses(clause.OnConflict{
 		Columns: []clause.Column{{Name: "name"}},
 		DoUpdates: clause.Assignments(map[string]interface{}{
 			"version":  v.Version,
@@ -80,7 +80,7 @@ func (n Plugins) CreateOrUpdate(ctx context.Context, v *Plugin) (err error) {
 
 // Update ...
 func (n Plugins) Update(ctx context.Context, m *Plugin) (err error) {
-	if err = n.Db.WithContext(ctx).Model(&Plugin{}).Where("name = ?", m.Name).Updates(map[string]interface{}{
+	if err = n.DB(ctx).Model(&Plugin{}).Where("name = ?", m.Name).Updates(map[string]interface{}{
 		"enabled":  m.Enabled,
 		"system":   m.System,
 		"actor":    m.Actor,
@@ -94,7 +94,7 @@ func (n Plugins) Update(ctx context.Context, m *Plugin) (err error) {
 
 // Delete ...
 func (n Plugins) Delete(ctx context.Context, name string) (err error) {
-	if err = n.Db.WithContext(ctx).Delete(&Plugin{Name: name}).Error; err != nil {
+	if err = n.DB(ctx).Delete(&Plugin{Name: name}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrPluginDelete, err.Error())
 	}
 	return
@@ -104,7 +104,7 @@ func (n Plugins) Delete(ctx context.Context, name string) (err error) {
 func (n Plugins) List(ctx context.Context, limit, offset int, orderBy, sort string, enabled, triggers *bool) (list []*Plugin, total int64, err error) {
 
 	list = make([]*Plugin, 0)
-	q := n.Db.WithContext(ctx).Model(&Plugin{})
+	q := n.DB(ctx).Model(&Plugin{})
 
 	if enabled != nil {
 		q = q.
@@ -139,7 +139,7 @@ func (n Plugins) List(ctx context.Context, limit, offset int, orderBy, sort stri
 // Search ...
 func (n Plugins) Search(ctx context.Context, query string, limit, offset int) (list []*Plugin, total int64, err error) {
 
-	q := n.Db.WithContext(ctx).Model(&Plugin{}).
+	q := n.DB(ctx).Model(&Plugin{}).
 		Where("name LIKE ? and actor=true and enabled=true", "%"+query+"%")
 
 	if err = q.Count(&total).Error; err != nil {
@@ -164,7 +164,7 @@ func (n Plugins) Search(ctx context.Context, query string, limit, offset int) (l
 func (n Plugins) GetByName(ctx context.Context, name string) (plugin *Plugin, err error) {
 
 	plugin = &Plugin{}
-	err = n.Db.WithContext(ctx).Model(plugin).
+	err = n.DB(ctx).Model(plugin).
 		Where("name = ?", name).
 		First(&plugin).
 		Error

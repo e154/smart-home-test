@@ -33,7 +33,7 @@ import (
 
 // Metrics ...
 type Metrics struct {
-	Db *gorm.DB
+	*Common
 }
 
 // Metric ...
@@ -55,7 +55,7 @@ func (Metric) TableName() string {
 
 // Add ...
 func (n Metrics) Add(ctx context.Context, metric *Metric) (id int64, err error) {
-	if err = n.Db.WithContext(ctx).Create(&metric).Error; err != nil {
+	if err = n.DB(ctx).Create(&metric).Error; err != nil {
 		err = errors.Wrap(apperr.ErrMetricAdd, err.Error())
 		return
 	}
@@ -66,7 +66,7 @@ func (n Metrics) Add(ctx context.Context, metric *Metric) (id int64, err error) 
 // GetById ...
 func (n Metrics) GetById(ctx context.Context, id int64) (metric *Metric, err error) {
 	metric = &Metric{Id: id}
-	if err = n.Db.WithContext(ctx).First(&metric).Error; err != nil {
+	if err = n.DB(ctx).First(&metric).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			err = errors.Wrap(apperr.ErrMetricNotFound, fmt.Sprintf("id \"%d\"", id))
 			return
@@ -84,7 +84,7 @@ func (n Metrics) Update(ctx context.Context, m *Metric) (err error) {
 		"options":     m.Options,
 		"type":        m.Type,
 	}
-	if err = n.Db.WithContext(ctx).Model(&Metric{}).Where("id = ?", m.Id).Updates(q).Error; err != nil {
+	if err = n.DB(ctx).Model(&Metric{}).Where("id = ?", m.Id).Updates(q).Error; err != nil {
 		err = errors.Wrap(apperr.ErrMetricUpdate, err.Error())
 	}
 	return
@@ -92,7 +92,7 @@ func (n Metrics) Update(ctx context.Context, m *Metric) (err error) {
 
 // Delete ...
 func (n Metrics) Delete(ctx context.Context, id int64) (err error) {
-	if err = n.Db.WithContext(ctx).Delete(&Metric{}, "id = ?", id).Error; err != nil {
+	if err = n.DB(ctx).Delete(&Metric{}, "id = ?", id).Error; err != nil {
 		err = errors.Wrap(apperr.ErrMetricDelete, err.Error())
 	}
 	return
@@ -101,13 +101,13 @@ func (n Metrics) Delete(ctx context.Context, id int64) (err error) {
 // List ...
 func (n *Metrics) List(ctx context.Context, limit, offset int, orderBy, sort string) (list []*Metric, total int64, err error) {
 
-	if err = n.Db.WithContext(ctx).Model(Metric{}).Count(&total).Error; err != nil {
+	if err = n.DB(ctx).Model(Metric{}).Count(&total).Error; err != nil {
 		err = errors.Wrap(apperr.ErrMetricList, err.Error())
 		return
 	}
 
 	list = make([]*Metric, 0)
-	q := n.Db.WithContext(ctx).Model(&Metric{}).
+	q := n.DB(ctx).Model(&Metric{}).
 		Limit(limit).
 		Offset(offset)
 
@@ -125,7 +125,7 @@ func (n *Metrics) List(ctx context.Context, limit, offset int, orderBy, sort str
 // Search ...q
 func (n *Metrics) Search(ctx context.Context, query string, limit, offset int) (list []*Metric, total int64, err error) {
 
-	q := n.Db.WithContext(ctx).Model(&Metric{}).
+	q := n.DB(ctx).Model(&Metric{}).
 		Where("name LIKE ?", "%"+query+"%")
 
 	if err = q.Count(&total).Error; err != nil {
@@ -148,7 +148,7 @@ func (n *Metrics) Search(ctx context.Context, query string, limit, offset int) (
 
 // AddMultiple ...
 func (n *Metrics) AddMultiple(ctx context.Context, metrics []*Metric) (err error) {
-	if err = n.Db.WithContext(ctx).Create(&metrics).Error; err != nil {
+	if err = n.DB(ctx).Create(&metrics).Error; err != nil {
 		err = errors.Wrap(apperr.ErrMetricAdd, err.Error())
 	}
 	return

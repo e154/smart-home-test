@@ -44,10 +44,7 @@ func NewMigrationUpdatePermissions(adaptors *adaptors.Adaptors,
 	}
 }
 
-func (r *MigrationUpdatePermissions) Up(ctx context.Context, adaptors *adaptors.Adaptors) (err error) {
-	if adaptors != nil {
-		r.adaptors = adaptors
-	}
+func (r *MigrationUpdatePermissions) Up(ctx context.Context) (err error) {
 
 	if _, err = r.truncatePermissions(ctx); err != nil {
 		return

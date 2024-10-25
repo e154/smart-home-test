@@ -33,7 +33,7 @@ import (
 
 // Zigbee2mqttDevices ...
 type Zigbee2mqttDevices struct {
-	Db *gorm.DB
+	*Common
 }
 
 // Zigbee2mqttDevice ...
@@ -60,7 +60,7 @@ func (m *Zigbee2mqttDevice) TableName() string {
 
 // Add ...
 func (z Zigbee2mqttDevices) Add(ctx context.Context, v *Zigbee2mqttDevice) (err error) {
-	if err = z.Db.WithContext(ctx).Create(&v).Error; err != nil {
+	if err = z.DB(ctx).Create(&v).Error; err != nil {
 		err = errors.Wrap(apperr.ErrZigbeeDeviceAdd, err.Error())
 	}
 	return
@@ -69,7 +69,7 @@ func (z Zigbee2mqttDevices) Add(ctx context.Context, v *Zigbee2mqttDevice) (err 
 // GetById ...
 func (z Zigbee2mqttDevices) GetById(ctx context.Context, id string) (v *Zigbee2mqttDevice, err error) {
 	v = &Zigbee2mqttDevice{Id: id}
-	if err = z.Db.WithContext(ctx).First(&v).Error; err != nil {
+	if err = z.DB(ctx).First(&v).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			err = errors.Wrap(apperr.ErrZigbeeDeviceNotFound, fmt.Sprintf("id \"%s\"", id))
 			return
@@ -81,7 +81,7 @@ func (z Zigbee2mqttDevices) GetById(ctx context.Context, id string) (v *Zigbee2m
 
 // Update ...
 func (z Zigbee2mqttDevices) Update(ctx context.Context, m *Zigbee2mqttDevice) (err error) {
-	err = z.Db.WithContext(ctx).Model(&Zigbee2mqttDevice{Id: m.Id}).Updates(map[string]interface{}{
+	err = z.DB(ctx).Model(&Zigbee2mqttDevice{Id: m.Id}).Updates(map[string]interface{}{
 		"Name":         m.Name,
 		"Type":         m.Type,
 		"Model":        m.Model,
@@ -99,7 +99,7 @@ func (z Zigbee2mqttDevices) Update(ctx context.Context, m *Zigbee2mqttDevice) (e
 
 // Delete ...
 func (z Zigbee2mqttDevices) Delete(ctx context.Context, id string) (err error) {
-	if err = z.Db.WithContext(ctx).Delete(&Zigbee2mqttDevice{Id: id}).Error; err != nil {
+	if err = z.DB(ctx).Delete(&Zigbee2mqttDevice{Id: id}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrZigbeeDeviceDelete, err.Error())
 	}
 	return
@@ -108,13 +108,13 @@ func (z Zigbee2mqttDevices) Delete(ctx context.Context, id string) (err error) {
 // List ...
 func (z *Zigbee2mqttDevices) List(ctx context.Context, limit, offset int) (list []*Zigbee2mqttDevice, total int64, err error) {
 
-	if err = z.Db.WithContext(ctx).Model(Zigbee2mqttDevice{}).Count(&total).Error; err != nil {
+	if err = z.DB(ctx).Model(Zigbee2mqttDevice{}).Count(&total).Error; err != nil {
 		err = errors.Wrap(apperr.ErrZigbeeDeviceList, err.Error())
 		return
 	}
 
 	list = make([]*Zigbee2mqttDevice, 0)
-	err = z.Db.WithContext(ctx).
+	err = z.DB(ctx).
 		Limit(limit).
 		Offset(offset).
 		Find(&list).
@@ -128,13 +128,13 @@ func (z *Zigbee2mqttDevices) List(ctx context.Context, limit, offset int) (list 
 // ListByBridgeId ...
 func (z *Zigbee2mqttDevices) ListByBridgeId(ctx context.Context, bridgeId int64, limit, offset int, orderBy, sort string) (list []*Zigbee2mqttDevice, total int64, err error) {
 
-	if err = z.Db.WithContext(ctx).Model(Zigbee2mqttDevice{}).Where("zigbee2mqtt_id = ?", bridgeId).Count(&total).Error; err != nil {
+	if err = z.DB(ctx).Model(Zigbee2mqttDevice{}).Where("zigbee2mqtt_id = ?", bridgeId).Count(&total).Error; err != nil {
 		err = errors.Wrap(apperr.ErrZigbeeDeviceList, err.Error())
 		return
 	}
 
 	list = make([]*Zigbee2mqttDevice, 0)
-	q := z.Db.WithContext(ctx).
+	q := z.DB(ctx).
 		Where("zigbee2mqtt_id = ?", bridgeId).
 		Limit(limit).
 		Offset(offset)
@@ -154,7 +154,7 @@ func (z *Zigbee2mqttDevices) ListByBridgeId(ctx context.Context, bridgeId int64,
 // Search ...
 func (z *Zigbee2mqttDevices) Search(ctx context.Context, query string, limit, offset int) (list []*Zigbee2mqttDevice, total int64, err error) {
 
-	q := z.Db.WithContext(ctx).Model(&Zigbee2mqttDevice{}).
+	q := z.DB(ctx).Model(&Zigbee2mqttDevice{}).
 		Where("name LIKE ?", "%"+query+"%")
 
 	if err = q.Count(&total).Error; err != nil {

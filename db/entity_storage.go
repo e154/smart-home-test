@@ -34,7 +34,7 @@ import (
 
 // EntityStorages ...
 type EntityStorages struct {
-	Db *gorm.DB
+	*Common
 }
 
 // EntityStorage ...
@@ -53,7 +53,7 @@ func (d *EntityStorage) TableName() string {
 
 // Add ...
 func (n *EntityStorages) Add(ctx context.Context, v *EntityStorage) (id int64, err error) {
-	if err = n.Db.WithContext(ctx).Create(&v).Error; err != nil {
+	if err = n.DB(ctx).Create(&v).Error; err != nil {
 		err = errors.Wrap(apperr.ErrEntityStorageAdd, err.Error())
 		return
 	}
@@ -64,7 +64,7 @@ func (n *EntityStorages) Add(ctx context.Context, v *EntityStorage) (id int64, e
 // GetLastByEntityId ...
 func (n *EntityStorages) GetLastByEntityId(ctx context.Context, entityId common.EntityId) (v *EntityStorage, err error) {
 	v = &EntityStorage{}
-	err = n.Db.WithContext(ctx).Model(&EntityStorage{}).
+	err = n.DB(ctx).Model(&EntityStorage{}).
 		Order("created_at desc").
 		First(&v, "entity_id = ?", entityId).
 		Error
@@ -83,7 +83,7 @@ func (n *EntityStorages) GetLastByEntityId(ctx context.Context, entityId common.
 // GetLastThreeById ...
 func (n *EntityStorages) GetLastThreeById(ctx context.Context, entityId common.EntityId, id int64) (list []*EntityStorage, err error) {
 	list = make([]*EntityStorage, 2)
-	err = n.Db.WithContext(ctx).Model(&EntityStorage{}).
+	err = n.DB(ctx).Model(&EntityStorage{}).
 		Order("id desc").
 		Where("entity_id = ? and id <= ?", entityId, id).
 		Limit(3).
@@ -104,7 +104,7 @@ func (n *EntityStorages) GetLastThreeById(ctx context.Context, entityId common.E
 // List ...
 func (n *EntityStorages) List(ctx context.Context, limit, offset int, orderBy, sort string, entityIds []common.EntityId, startDate, endDate *time.Time) (list []*EntityStorage, total int64, err error) {
 
-	q := n.Db.WithContext(ctx).Model(&EntityStorage{})
+	q := n.DB(ctx).Model(&EntityStorage{})
 
 	if len(entityIds) > 0 {
 		q = q.Where("entity_id in (?)", entityIds)
@@ -153,11 +153,11 @@ func (n *EntityStorages) List(ctx context.Context, limit, offset int, orderBy, s
 // DeleteOldest ...
 func (n *EntityStorages) DeleteOldest(ctx context.Context, days int) (err error) {
 	storage := &EntityStorage{}
-	if err = n.Db.WithContext(ctx).Last(&storage).Error; err != nil {
+	if err = n.DB(ctx).Last(&storage).Error; err != nil {
 		err = errors.Wrap(apperr.ErrLogDelete, err.Error())
 		return
 	}
-	err = n.Db.WithContext(ctx).Delete(&EntityStorage{},
+	err = n.DB(ctx).Delete(&EntityStorage{},
 		fmt.Sprintf(`created_at < CAST('%s' AS DATE) - interval '%d days'`,
 			storage.CreatedAt.UTC().Format("2006-01-02 15:04:05"), days)).Error
 	if err != nil {

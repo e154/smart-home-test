@@ -31,7 +31,7 @@ import (
 
 // Zigbee2mqtts ...
 type Zigbee2mqtts struct {
-	Db *gorm.DB
+	*Common
 }
 
 // Zigbee2mqtt ...
@@ -54,7 +54,7 @@ func (m *Zigbee2mqtt) TableName() string {
 
 // Add ...
 func (z Zigbee2mqtts) Add(ctx context.Context, v *Zigbee2mqtt) (id int64, err error) {
-	if err = z.Db.WithContext(ctx).Create(&v).Error; err != nil {
+	if err = z.DB(ctx).Create(&v).Error; err != nil {
 		err = errors.Wrap(apperr.ErrZigbee2mqttAdd, err.Error())
 		return
 	}
@@ -65,7 +65,7 @@ func (z Zigbee2mqtts) Add(ctx context.Context, v *Zigbee2mqtt) (id int64, err er
 // GetById ...
 func (z Zigbee2mqtts) GetById(ctx context.Context, id int64) (v *Zigbee2mqtt, err error) {
 	v = &Zigbee2mqtt{Id: id}
-	err = z.Db.WithContext(ctx).First(&v).
+	err = z.DB(ctx).First(&v).
 		Preload("Devices").Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -87,7 +87,7 @@ func (z Zigbee2mqtts) Update(ctx context.Context, m *Zigbee2mqtt) (err error) {
 		"encrypted_password": m.EncryptedPassword,
 	}
 
-	if err = z.Db.WithContext(ctx).Model(&Zigbee2mqtt{Id: m.Id}).Updates(q).Error; err != nil {
+	if err = z.DB(ctx).Model(&Zigbee2mqtt{Id: m.Id}).Updates(q).Error; err != nil {
 		err = errors.Wrap(apperr.ErrZigbee2mqttUpdate, err.Error())
 	}
 	return
@@ -95,7 +95,7 @@ func (z Zigbee2mqtts) Update(ctx context.Context, m *Zigbee2mqtt) (err error) {
 
 // Delete ...
 func (z Zigbee2mqtts) Delete(ctx context.Context, id int64) (err error) {
-	if err = z.Db.WithContext(ctx).Delete(&Zigbee2mqtt{Id: id}).Error; err != nil {
+	if err = z.DB(ctx).Delete(&Zigbee2mqtt{Id: id}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrZigbee2mqttDelete, err.Error())
 	}
 	return
@@ -104,12 +104,12 @@ func (z Zigbee2mqtts) Delete(ctx context.Context, id int64) (err error) {
 // List ...
 func (z *Zigbee2mqtts) List(ctx context.Context, limit, offset int) (list []*Zigbee2mqtt, total int64, err error) {
 
-	if err = z.Db.WithContext(ctx).Model(Zigbee2mqtt{}).Count(&total).Error; err != nil {
+	if err = z.DB(ctx).Model(Zigbee2mqtt{}).Count(&total).Error; err != nil {
 		return
 	}
 
 	list = make([]*Zigbee2mqtt, 0)
-	err = z.Db.WithContext(ctx).
+	err = z.DB(ctx).
 		Limit(limit).
 		Preload("Devices").
 		Offset(offset).
@@ -125,7 +125,7 @@ func (z *Zigbee2mqtts) List(ctx context.Context, limit, offset int) (list []*Zig
 func (z *Zigbee2mqtts) GetByLogin(ctx context.Context, login string) (bridge *Zigbee2mqtt, err error) {
 
 	bridge = &Zigbee2mqtt{}
-	err = z.Db.WithContext(ctx).Model(bridge).
+	err = z.DB(ctx).Model(bridge).
 		Where("login = ?", login).
 		First(&bridge).
 		Error

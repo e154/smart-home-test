@@ -32,7 +32,7 @@ import (
 
 // Actions ...
 type Actions struct {
-	Db *gorm.DB
+	*Common
 }
 
 // Action ...
@@ -58,7 +58,7 @@ func (*Action) TableName() string {
 
 // Add ...
 func (t Actions) Add(ctx context.Context, action *Action) (id int64, err error) {
-	if err = t.Db.WithContext(ctx).Create(&action).Error; err != nil {
+	if err = t.DB(ctx).Create(&action).Error; err != nil {
 		err = errors.Wrap(apperr.ErrActionAdd, err.Error())
 		return
 	}
@@ -69,7 +69,7 @@ func (t Actions) Add(ctx context.Context, action *Action) (id int64, err error) 
 // GetById ...
 func (t Actions) GetById(ctx context.Context, id int64) (action *Action, err error) {
 	action = &Action{}
-	err = t.Db.WithContext(ctx).Model(action).
+	err = t.DB(ctx).Model(action).
 		Where("id = ?", id).
 		Preload("Entity").
 		Preload("Script").
@@ -96,7 +96,7 @@ func (t Actions) Update(ctx context.Context, m *Action) (err error) {
 		"area_id":            m.AreaId,
 		"entity_action_name": m.EntityActionName,
 	}
-	if err = t.Db.WithContext(ctx).Model(&Action{}).Where("id = ?", m.Id).Updates(q).Error; err != nil {
+	if err = t.DB(ctx).Model(&Action{}).Where("id = ?", m.Id).Updates(q).Error; err != nil {
 		err = errors.Wrap(apperr.ErrActionUpdate, err.Error())
 	}
 	return
@@ -104,7 +104,7 @@ func (t Actions) Update(ctx context.Context, m *Action) (err error) {
 
 // Delete ...
 func (t Actions) Delete(ctx context.Context, id int64) (err error) {
-	if err = t.Db.WithContext(ctx).Delete(&Action{}, "id = ?", id).Error; err != nil {
+	if err = t.DB(ctx).Delete(&Action{}, "id = ?", id).Error; err != nil {
 		err = errors.Wrap(apperr.ErrActionDelete, err.Error())
 	}
 	return
@@ -113,13 +113,13 @@ func (t Actions) Delete(ctx context.Context, id int64) (err error) {
 // List ...
 func (t *Actions) List(ctx context.Context, limit, offset int, orderBy, sort string, ids *[]uint64) (list []*Action, total int64, err error) {
 
-	if err = t.Db.WithContext(ctx).Model(Action{}).Count(&total).Error; err != nil {
+	if err = t.DB(ctx).Model(Action{}).Count(&total).Error; err != nil {
 		err = errors.Wrap(apperr.ErrActionList, err.Error())
 		return
 	}
 
 	list = make([]*Action, 0)
-	q := t.Db.WithContext(ctx).Model(&Action{}).
+	q := t.DB(ctx).Model(&Action{}).
 		Limit(limit).
 		Offset(offset)
 
@@ -140,7 +140,7 @@ func (t *Actions) List(ctx context.Context, limit, offset int, orderBy, sort str
 // Search ...q
 func (t *Actions) Search(ctx context.Context, query string, limit, offset int) (list []*Action, total int64, err error) {
 
-	q := t.Db.WithContext(ctx).Model(&Action{}).
+	q := t.DB(ctx).Model(&Action{}).
 		Where("name LIKE ?", "%"+query+"%")
 
 	if err = q.Count(&total).Error; err != nil {

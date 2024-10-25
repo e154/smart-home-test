@@ -37,10 +37,7 @@ func NewMigrationAutocert(adaptors *adaptors.Adaptors) *MigrationAutocert {
 	}
 }
 
-func (n *MigrationAutocert) Up(ctx context.Context, adaptors *adaptors.Adaptors) error {
-	if adaptors != nil {
-		n.adaptors = adaptors
-	}
+func (n *MigrationAutocert) Up(ctx context.Context) error {
 
 	return n.addPlugin(ctx, "autocert", false, false, true, autocert.Version)
 }

@@ -36,7 +36,7 @@ import (
 
 // Entities ...
 type Entities struct {
-	Db *gorm.DB
+	*Common
 }
 
 // Entity ...
@@ -77,7 +77,13 @@ type EntitiesStatistic struct {
 
 // Add ...
 func (n Entities) Add(ctx context.Context, v *Entity) (err error) {
-	err = n.Db.WithContext(ctx).Omit("Metrics.*").Omit("Tags.*").Omit("Scripts.*").Create(&v).Error
+
+	err = n.DB(ctx).
+		Omit("Metrics.*").
+		Omit("Tags.*").
+		Omit("Scripts.*").
+		Create(&v).Error
+
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -93,13 +99,14 @@ func (n Entities) Add(ctx context.Context, v *Entity) (err error) {
 		}
 		err = errors.Wrap(apperr.ErrEntityAdd, err.Error())
 	}
+
 	return
 }
 
 // Update ...
 func (n Entities) Update(ctx context.Context, v *Entity) (err error) {
 
-	err = n.Db.WithContext(ctx).
+	err = n.DB(ctx).
 		Omit("Metrics.*").
 		Omit("Tags.*").
 		Omit("Scripts.*").
@@ -108,13 +115,14 @@ func (n Entities) Update(ctx context.Context, v *Entity) (err error) {
 	if err != nil {
 		err = errors.Wrap(apperr.ErrEntityUpdate, err.Error())
 	}
+
 	return
 }
 
 // GetById ...
 func (n Entities) GetById(ctx context.Context, id common.EntityId) (v *Entity, err error) {
 	v = &Entity{}
-	err = n.Db.WithContext(ctx).Model(v).
+	err = n.DB(ctx).Model(v).
 		Where("id = ?", id).
 		Preload("Image").
 		Preload("States").
@@ -147,7 +155,7 @@ func (n Entities) GetById(ctx context.Context, id common.EntityId) (v *Entity, e
 func (n Entities) GetByIds(ctx context.Context, ids []common.EntityId) (list []*Entity, err error) {
 
 	list = make([]*Entity, 0)
-	err = n.Db.WithContext(ctx).Model(Entity{}).
+	err = n.DB(ctx).Model(Entity{}).
 		Where("id IN (?)", ids).
 		Preload("Image").
 		Preload("States").
@@ -181,7 +189,7 @@ func (n Entities) GetByIds(ctx context.Context, ids []common.EntityId) (list []*
 func (n Entities) GetByIdsSimple(ctx context.Context, ids []common.EntityId) (list []*Entity, err error) {
 
 	list = make([]*Entity, 0)
-	err = n.Db.WithContext(ctx).Model(Entity{}).
+	err = n.DB(ctx).Model(Entity{}).
 		Preload("States").
 		Where("id IN (?)", ids).
 		Find(&list).Error
@@ -197,7 +205,7 @@ func (n Entities) GetByIdsSimple(ctx context.Context, ids []common.EntityId) (li
 // Delete ...
 func (n Entities) Delete(ctx context.Context, id common.EntityId) (err error) {
 
-	if err = n.Db.WithContext(ctx).Delete(&Entity{Id: id}).Error; err != nil {
+	if err = n.DB(ctx).Delete(&Entity{Id: id}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrEntityDelete, err.Error())
 		return
 	}
@@ -210,7 +218,7 @@ func (n *Entities) List(ctx context.Context, limit, offset int, orderBy, sort st
 	query, plugin *string, areaId *int64) (list []*Entity, total int64, err error) {
 
 	list = make([]*Entity, 0)
-	q := n.Db.WithContext(ctx).Model(Entity{})
+	q := n.DB(ctx).Model(Entity{})
 	if autoLoad {
 		q = q.Where("auto_load = ?", true)
 	}
@@ -271,7 +279,7 @@ func (n *Entities) ListPlain(ctx context.Context, limit, offset int, orderBy, so
 	query, plugin *string, areaId *int64, tags *[]string) (list []*Entity, total int64, err error) {
 
 	list = make([]*Entity, 0)
-	q := n.Db.WithContext(ctx).Model(Entity{})
+	q := n.DB(ctx).Model(Entity{})
 	if autoLoad {
 		q = q.Where("auto_load = ?", true)
 	}
@@ -321,7 +329,7 @@ func (n *Entities) ListPlain(ctx context.Context, limit, offset int, orderBy, so
 func (n *Entities) GetByType(ctx context.Context, t string, limit, offset int) (list []*Entity, err error) {
 
 	list = make([]*Entity, 0)
-	err = n.Db.WithContext(ctx).
+	err = n.DB(ctx).
 		Model(&Entity{}).
 		Where("plugin_name = ? and auto_load = true", t).
 		Preload("Image").
@@ -359,7 +367,7 @@ func (n *Entities) GetByType(ctx context.Context, t string, limit, offset int) (
 // Search ...
 func (n *Entities) Search(ctx context.Context, query string, limit, offset int) (list []*Entity, total int64, err error) {
 
-	q := n.Db.WithContext(ctx).Model(&Entity{}).
+	q := n.DB(ctx).Model(&Entity{}).
 		Where("id LIKE ?", "%"+query+"%")
 
 	if err = q.Count(&total).Error; err != nil {
@@ -386,7 +394,7 @@ func (n Entities) UpdateAutoload(ctx context.Context, entityId common.EntityId, 
 		"auto_load": autoLoad,
 	}
 
-	if err = n.Db.WithContext(ctx).Model(&Entity{Id: entityId}).Updates(q).Error; err != nil {
+	if err = n.DB(ctx).Model(&Entity{Id: entityId}).Updates(q).Error; err != nil {
 		err = errors.Wrap(apperr.ErrEntityUpdate, err.Error())
 	}
 	return
@@ -394,7 +402,7 @@ func (n Entities) UpdateAutoload(ctx context.Context, entityId common.EntityId, 
 
 // DeleteScripts ...
 func (n Entities) DeleteScripts(ctx context.Context, id common.EntityId) (err error) {
-	if err = n.Db.WithContext(ctx).Model(&Entity{Id: id}).Association("Scripts").Clear(); err != nil {
+	if err = n.DB(ctx).Model(&Entity{Id: id}).Association("Scripts").Clear(); err != nil {
 		err = errors.Wrap(apperr.ErrEntityDeleteScript, err.Error())
 	}
 	return
@@ -402,7 +410,7 @@ func (n Entities) DeleteScripts(ctx context.Context, id common.EntityId) (err er
 
 // DeleteTags ...
 func (n Entities) DeleteTags(ctx context.Context, id common.EntityId) (err error) {
-	if err = n.Db.WithContext(ctx).Model(&Entity{Id: id}).Association("Tags").Clear(); err != nil {
+	if err = n.DB(ctx).Model(&Entity{Id: id}).Association("Tags").Clear(); err != nil {
 		err = errors.Wrap(apperr.ErrEntityDeleteTag, err.Error())
 	}
 	return
@@ -414,7 +422,7 @@ func (n Entities) PreloadStorage(ctx context.Context, list []*Entity) (err error
 	//todo: fix
 	// temporary solution because Preload("Storage", func(db *gorm.DB) *gorm.DB { - does not work ...
 	for _, item := range list {
-		err = n.Db.WithContext(ctx).Model(&EntityStorage{}).
+		err = n.DB(ctx).Model(&EntityStorage{}).
 			Order("created_at desc").
 			Limit(2).
 			Find(&item.Storage, "entity_id = ?", item.Id).
@@ -437,7 +445,7 @@ func (n *Entities) Statistic(ctx context.Context) (statistic *EntitiesStatistic,
 		Count    int32
 		AutoLoad bool
 	}
-	err = n.Db.WithContext(ctx).Raw(`
+	err = n.DB(ctx).Raw(`
 select count(e.id), e.auto_load
 from entities as e
 group by e.auto_load`).

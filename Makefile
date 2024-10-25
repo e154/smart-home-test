@@ -281,15 +281,29 @@ typedoc:
 	@echo MARK: typedoc
 	npx typedoc --tsconfig ./data/scripts/tsconfig.json --out ./api/typedoc ./data/scripts/global.d.ts
 
-.PHONY: build # Build the container image
-build:
+.PHONY: local_build # Build the container image
+local_build:
 	@docker buildx create --use --name=smart-home --node=smart-home && \
 	echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
 	docker --debug buildx build \
 		--build-arg GO_BUILD_LDFLAGS="${GO_BUILD_LDFLAGS}" \
 		--build-arg GO_BUILD_TAGS="${GO_BUILD_TAGS}" \
+		--build-arg RELEASE_VERSION="${RELEASE_VERSION}" \
 		-f ./bin/docker/Dockerfile.server \
 		--output "type=docker,push=false" \
+		--tag $(DOCKER_IMAGE_VER) \
+		.
+.PHONY: test_build # Build the container image
+test_build:
+	@docker buildx create --use --name=smart-home --node=smart-home && \
+	echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
+	docker buildx build \
+		--build-arg GO_BUILD_LDFLAGS="${GO_BUILD_LDFLAGS}" \
+		--build-arg GO_BUILD_TAGS="${GO_BUILD_TAGS}" \
+		--build-arg RELEASE_VERSION="${RELEASE_VERSION}" \
+		-f ./bin/docker/Dockerfile.server \
+		--platform linux/386,linux/amd64,linux/arm64,linux/arm/v5,linux/arm/v6,linux/arm/v7,linux/ppc64le,linux/s390x \
+		--output "type=image,push=false" \
 		--tag $(DOCKER_IMAGE_VER) \
 		.
 
@@ -300,6 +314,7 @@ publish:
 	docker buildx build \
 		--build-arg GO_BUILD_LDFLAGS="${GO_BUILD_LDFLAGS}" \
 		--build-arg GO_BUILD_TAGS="${GO_BUILD_TAGS}" \
+		--build-arg RELEASE_VERSION="${RELEASE_VERSION}" \
 		-f ./bin/docker/Dockerfile.server \
 		--platform linux/386,linux/amd64,linux/arm64,linux/arm/v5,linux/arm/v6,linux/arm/v7,linux/ppc64le,linux/s390x \
 		--output "type=image,push=true" \

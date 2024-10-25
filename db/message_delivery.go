@@ -33,7 +33,7 @@ import (
 
 // MessageDeliveries ...
 type MessageDeliveries struct {
-	Db *gorm.DB
+	*Common
 }
 
 // MessageDelivery ...
@@ -57,7 +57,7 @@ func (d *MessageDelivery) TableName() string {
 
 // Add ...
 func (n *MessageDeliveries) Add(ctx context.Context, msg *MessageDelivery) (id int64, err error) {
-	if err = n.Db.WithContext(ctx).Create(&msg).Error; err != nil {
+	if err = n.DB(ctx).Create(&msg).Error; err != nil {
 		err = errors.Wrap(apperr.ErrMessageDeliveryAdd, err.Error())
 		return
 	}
@@ -68,7 +68,7 @@ func (n *MessageDeliveries) Add(ctx context.Context, msg *MessageDelivery) (id i
 func (n *MessageDeliveries) List(ctx context.Context, limit, offset int, orderBy, sort string, queryObj *MessageDeliveryQuery) (list []*MessageDelivery, total int64, err error) {
 
 	list = make([]*MessageDelivery, 0)
-	q := n.Db.WithContext(ctx).Model(&MessageDelivery{}).
+	q := n.DB(ctx).Model(&MessageDelivery{}).
 		Joins(`left join messages on messages.id = message_deliveries.message_id`)
 
 	if sort != "" && orderBy != "" {
@@ -108,13 +108,13 @@ func (n *MessageDeliveries) List(ctx context.Context, limit, offset int, orderBy
 // GetAllUncompleted ...
 func (n *MessageDeliveries) GetAllUncompleted(ctx context.Context, limit, offset int) (list []*MessageDelivery, total int64, err error) {
 
-	if err = n.Db.WithContext(ctx).Model(&MessageDelivery{}).Count(&total).Error; err != nil {
+	if err = n.DB(ctx).Model(&MessageDelivery{}).Count(&total).Error; err != nil {
 		err = errors.Wrap(apperr.ErrMessageDeliveryUpdate, err.Error())
 		return
 	}
 
 	list = make([]*MessageDelivery, 0)
-	err = n.Db.WithContext(ctx).
+	err = n.DB(ctx).
 		Where("status in ('in_progress', 'new')").
 		Limit(limit).
 		Offset(offset).
@@ -130,7 +130,7 @@ func (n *MessageDeliveries) GetAllUncompleted(ctx context.Context, limit, offset
 // SetStatus ...
 func (n *MessageDeliveries) SetStatus(ctx context.Context, msg *MessageDelivery) (err error) {
 
-	err = n.Db.WithContext(ctx).Model(&MessageDelivery{Id: msg.Id}).
+	err = n.DB(ctx).Model(&MessageDelivery{Id: msg.Id}).
 		Updates(map[string]interface{}{
 			"status":               msg.Status,
 			"error_system_code":    msg.ErrorMessageStatus,
@@ -144,7 +144,7 @@ func (n *MessageDeliveries) SetStatus(ctx context.Context, msg *MessageDelivery)
 
 // Delete ...
 func (n *MessageDeliveries) Delete(ctx context.Context, id int64) (err error) {
-	if err = n.Db.WithContext(ctx).Delete(&MessageDelivery{Id: id}).Error; err != nil {
+	if err = n.DB(ctx).Delete(&MessageDelivery{Id: id}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrMessageDeliveryDelete, err.Error())
 	}
 	return
@@ -154,7 +154,7 @@ func (n *MessageDeliveries) Delete(ctx context.Context, id int64) (err error) {
 func (n *MessageDeliveries) GetById(ctx context.Context, id int64) (msg *MessageDelivery, err error) {
 
 	msg = &MessageDelivery{}
-	err = n.Db.WithContext(ctx).Model(msg).
+	err = n.DB(ctx).Model(msg).
 		Where("id = ?", id).
 		Preload("Message").
 		First(&msg).

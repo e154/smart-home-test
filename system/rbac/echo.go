@@ -71,7 +71,7 @@ func (f *EchoAccessFilter) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 
 		if f.config.RootMode {
 			c.Set("root", true)
-			return next(c)
+			//return next(c)
 		}
 
 		// get access token from meta

@@ -27,16 +27,14 @@ import (
 
 	"github.com/jackc/pgx/v5/pgconn"
 
+	"github.com/e154/smart-home/common/apperr"
 	"github.com/jackc/pgerrcode"
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
-
-	"github.com/e154/smart-home/common/apperr"
 )
 
 // UserDevices ...
 type UserDevices struct {
-	Db *gorm.DB
+	*Common
 }
 
 // UserDevice ...
@@ -54,7 +52,7 @@ func (d *UserDevice) TableName() string {
 
 // Add ...
 func (d *UserDevices) Add(ctx context.Context, device *UserDevice) (id int64, err error) {
-	if err = d.Db.WithContext(ctx).Create(&device).Error; err != nil {
+	if err = d.DB(ctx).Create(&device).Error; err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
@@ -77,7 +75,7 @@ func (d *UserDevices) Add(ctx context.Context, device *UserDevice) (id int64, er
 // GetByUserId ...
 func (d *UserDevices) GetByUserId(ctx context.Context, id int64) (devices []*UserDevice, err error) {
 	devices = make([]*UserDevice, 0)
-	err = d.Db.WithContext(ctx).Model(&UserDevice{}).
+	err = d.DB(ctx).Model(&UserDevice{}).
 		Where("user_id = ?", id).
 		Find(&devices).
 		Error
@@ -90,7 +88,7 @@ func (d *UserDevices) GetByUserId(ctx context.Context, id int64) (devices []*Use
 
 // Delete ...
 func (d *UserDevices) Delete(ctx context.Context, id int64) (err error) {
-	if err = d.Db.WithContext(ctx).Delete(&UserDevice{}, "id = ?", id).Error; err != nil {
+	if err = d.DB(ctx).Delete(&UserDevice{}, "id = ?", id).Error; err != nil {
 		err = errors.Wrap(apperr.ErrUserDeviceDelete, err.Error())
 	}
 	return
@@ -100,7 +98,7 @@ func (d *UserDevices) Delete(ctx context.Context, id int64) (err error) {
 func (d *UserDevices) List(ctx context.Context, limit, offset int, orderBy, sort string) (list []*UserDevice, total int64, err error) {
 
 	list = make([]*UserDevice, 0)
-	q := d.Db.WithContext(ctx).Model(UserDevice{})
+	q := d.DB(ctx).Model(UserDevice{})
 	if err = q.Count(&total).Error; err != nil {
 		err = errors.Wrap(apperr.ErrUserDeviceList, err.Error())
 		return

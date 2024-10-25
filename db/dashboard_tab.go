@@ -35,7 +35,7 @@ import (
 
 // DashboardTabs ...
 type DashboardTabs struct {
-	Db *gorm.DB
+	*Common
 }
 
 // DashboardTab ...
@@ -63,7 +63,7 @@ func (d *DashboardTab) TableName() string {
 
 // Add ...
 func (n DashboardTabs) Add(ctx context.Context, tab *DashboardTab) (id int64, err error) {
-	if err = n.Db.WithContext(ctx).Create(&tab).Error; err != nil {
+	if err = n.DB(ctx).Create(&tab).Error; err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
@@ -86,7 +86,7 @@ func (n DashboardTabs) Add(ctx context.Context, tab *DashboardTab) (id int64, er
 // GetById ...
 func (n DashboardTabs) GetById(ctx context.Context, id int64) (tab *DashboardTab, err error) {
 	tab = &DashboardTab{}
-	err = n.Db.WithContext(ctx).Model(tab).
+	err = n.DB(ctx).Model(tab).
 		Where("id = ?", id).
 		Preload("Cards").
 		Preload("Cards.Items").
@@ -117,7 +117,7 @@ func (n DashboardTabs) Update(ctx context.Context, tab *DashboardTab) (err error
 		"payload":      tab.Payload,
 	}
 
-	if err = n.Db.WithContext(ctx).Model(&DashboardTab{Id: tab.Id}).Updates(q).Error; err != nil {
+	if err = n.DB(ctx).Model(&DashboardTab{Id: tab.Id}).Updates(q).Error; err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
@@ -137,7 +137,7 @@ func (n DashboardTabs) Update(ctx context.Context, tab *DashboardTab) (err error
 
 // Delete ...
 func (n DashboardTabs) Delete(ctx context.Context, id int64) (err error) {
-	if err = n.Db.WithContext(ctx).Delete(&DashboardTab{Id: id}).Error; err != nil {
+	if err = n.DB(ctx).Delete(&DashboardTab{Id: id}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrDashboardTabDelete, err.Error())
 	}
 	return
@@ -146,13 +146,13 @@ func (n DashboardTabs) Delete(ctx context.Context, id int64) (err error) {
 // List ...
 func (n *DashboardTabs) List(ctx context.Context, limit, offset int, orderBy, sort string) (list []*DashboardTab, total int64, err error) {
 
-	if err = n.Db.WithContext(ctx).Model(DashboardTab{}).Count(&total).Error; err != nil {
+	if err = n.DB(ctx).Model(DashboardTab{}).Count(&total).Error; err != nil {
 		err = errors.Wrap(apperr.ErrDashboardTabList, err.Error())
 		return
 	}
 
 	list = make([]*DashboardTab, 0)
-	q := n.Db.
+	q := n.DB(ctx).
 		WithContext(ctx).
 		Preload("Cards").
 		Preload("Cards.Items").

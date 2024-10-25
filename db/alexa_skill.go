@@ -32,7 +32,7 @@ import (
 
 // AlexaSkills ...
 type AlexaSkills struct {
-	Db *gorm.DB
+	*Common
 }
 
 // AlexaSkill ...
@@ -55,7 +55,7 @@ func (d *AlexaSkill) TableName() string {
 
 // Add ...
 func (n AlexaSkills) Add(ctx context.Context, v *AlexaSkill) (id int64, err error) {
-	if err = n.Db.WithContext(ctx).Create(&v).Error; err != nil {
+	if err = n.DB(ctx).Create(&v).Error; err != nil {
 		err = errors.Wrap(apperr.ErrAlexaSkillAdd, err.Error())
 		return
 	}
@@ -66,7 +66,7 @@ func (n AlexaSkills) Add(ctx context.Context, v *AlexaSkill) (id int64, err erro
 // GetById ...
 func (n AlexaSkills) GetById(ctx context.Context, id int64) (v *AlexaSkill, err error) {
 	v = &AlexaSkill{Id: id}
-	err = n.Db.WithContext(ctx).Model(v).
+	err = n.DB(ctx).Model(v).
 		Preload("Script").
 		Preload("Intents").
 		Preload("Intents.Script").
@@ -90,13 +90,13 @@ func (n AlexaSkills) GetById(ctx context.Context, id int64) (v *AlexaSkill, err 
 // List ...
 func (n *AlexaSkills) List(ctx context.Context, limit, offset int, orderBy, sort string) (list []*AlexaSkill, total int64, err error) {
 
-	if err = n.Db.WithContext(ctx).Model(AlexaSkill{}).Count(&total).Error; err != nil {
+	if err = n.DB(ctx).Model(AlexaSkill{}).Count(&total).Error; err != nil {
 		err = errors.Wrap(apperr.ErrAlexaSkillList, err.Error())
 		return
 	}
 
 	list = make([]*AlexaSkill, 0)
-	q := n.Db.WithContext(ctx).Model(&AlexaSkill{}).
+	q := n.DB(ctx).Model(&AlexaSkill{}).
 		Limit(limit).
 		Offset(offset)
 
@@ -116,7 +116,7 @@ func (n *AlexaSkills) List(ctx context.Context, limit, offset int, orderBy, sort
 func (n *AlexaSkills) ListEnabled(ctx context.Context, limit, offset int) (list []*AlexaSkill, err error) {
 
 	list = make([]*AlexaSkill, 0)
-	err = n.Db.WithContext(ctx).Model(&AlexaSkill{}).
+	err = n.DB(ctx).Model(&AlexaSkill{}).
 		Where("status = 'enabled'").
 		Limit(limit).
 		Offset(offset).
@@ -140,7 +140,7 @@ func (n *AlexaSkills) ListEnabled(ctx context.Context, limit, offset int) (list 
 
 func (n AlexaSkills) preload(v *AlexaSkill) (err error) {
 	//todo fix
-	//err = n.Db.Model(v).
+	//err = n.DB(ctx).Model(v).
 	//	Related(&v.Intents).Error
 	//
 	//if err != nil {
@@ -150,7 +150,7 @@ func (n AlexaSkills) preload(v *AlexaSkill) (err error) {
 	//
 	//for _, intent := range v.Intents {
 	//	intent.Script = &Script{Id: intent.ScriptId}
-	//	err = n.Db.Model(intent).
+	//	err = n.DB(ctx).Model(intent).
 	//		Related(intent.Script).Error
 	//}
 	return
@@ -166,7 +166,7 @@ func (n AlexaSkills) Update(ctx context.Context, v *AlexaSkill) (err error) {
 	if v.ScriptId != nil {
 		q["script_id"] = common.Int64Value(v.ScriptId)
 	}
-	if err = n.Db.WithContext(ctx).Model(&AlexaSkill{}).Where("id = ?", v.Id).Updates(q).Error; err != nil {
+	if err = n.DB(ctx).Model(&AlexaSkill{}).Where("id = ?", v.Id).Updates(q).Error; err != nil {
 		err = errors.Wrap(apperr.ErrAlexaSkillUpdate, err.Error())
 	}
 	return
@@ -174,7 +174,7 @@ func (n AlexaSkills) Update(ctx context.Context, v *AlexaSkill) (err error) {
 
 // Delete ...
 func (n AlexaSkills) Delete(ctx context.Context, id int64) (err error) {
-	if err = n.Db.WithContext(ctx).Delete(&AlexaSkill{}, "id = ?", id).Error; err != nil {
+	if err = n.DB(ctx).Delete(&AlexaSkill{}, "id = ?", id).Error; err != nil {
 		err = errors.Wrap(apperr.ErrAlexaSkillDelete, err.Error())
 	}
 	return

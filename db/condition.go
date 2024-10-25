@@ -30,7 +30,7 @@ import (
 
 // Conditions ...
 type Conditions struct {
-	Db *gorm.DB
+	*Common
 }
 
 // Condition ...
@@ -53,7 +53,7 @@ func (d *Condition) TableName() string {
 
 // Add ...
 func (t Conditions) Add(ctx context.Context, condition *Condition) (id int64, err error) {
-	if err = t.Db.WithContext(ctx).Create(&condition).Error; err != nil {
+	if err = t.DB(ctx).Create(&condition).Error; err != nil {
 		err = errors.Wrap(apperr.ErrConditionAdd, err.Error())
 		return
 	}
@@ -64,7 +64,7 @@ func (t Conditions) Add(ctx context.Context, condition *Condition) (id int64, er
 // GetById ...
 func (t Conditions) GetById(ctx context.Context, id int64) (condition *Condition, err error) {
 	condition = &Condition{Id: id}
-	err = t.Db.
+	err = t.DB(ctx).
 		WithContext(ctx).
 		Model(condition).
 		Preload("Script").
@@ -90,7 +90,7 @@ func (t Conditions) Update(ctx context.Context, m *Condition) (err error) {
 		"area_id":     m.AreaId,
 	}
 
-	if err = t.Db.WithContext(ctx).Model(&Condition{}).Where("id = ?", m.Id).Updates(q).Error; err != nil {
+	if err = t.DB(ctx).Model(&Condition{}).Where("id = ?", m.Id).Updates(q).Error; err != nil {
 		err = errors.Wrap(apperr.ErrConditionUpdate, err.Error())
 	}
 	return
@@ -98,7 +98,7 @@ func (t Conditions) Update(ctx context.Context, m *Condition) (err error) {
 
 // Delete ...
 func (t Conditions) Delete(ctx context.Context, id int64) (err error) {
-	if err = t.Db.WithContext(ctx).Delete(&Condition{}, "id = ?", id).Error; err != nil {
+	if err = t.DB(ctx).Delete(&Condition{}, "id = ?", id).Error; err != nil {
 		err = errors.Wrap(apperr.ErrConditionDelete, err.Error())
 	}
 	return
@@ -107,13 +107,13 @@ func (t Conditions) Delete(ctx context.Context, id int64) (err error) {
 // List ...
 func (t *Conditions) List(ctx context.Context, limit, offset int, orderBy, sort string, ids *[]uint64) (list []*Condition, total int64, err error) {
 
-	if err = t.Db.WithContext(ctx).Model(Condition{}).Count(&total).Error; err != nil {
+	if err = t.DB(ctx).Model(Condition{}).Count(&total).Error; err != nil {
 		err = errors.Wrap(apperr.ErrConditionList, err.Error())
 		return
 	}
 
 	list = make([]*Condition, 0)
-	q := t.Db.WithContext(ctx).Model(&Condition{}).
+	q := t.DB(ctx).Model(&Condition{}).
 		Preload("Area").
 		Limit(limit).
 		Offset(offset)
@@ -134,7 +134,7 @@ func (t *Conditions) List(ctx context.Context, limit, offset int, orderBy, sort 
 // Search ...q
 func (t *Conditions) Search(ctx context.Context, query string, limit, offset int) (list []*Condition, total int64, err error) {
 
-	q := t.Db.WithContext(ctx).Model(&Condition{}).
+	q := t.DB(ctx).Model(&Condition{}).
 		Where("name LIKE ?", "%"+query+"%")
 
 	if err = q.Count(&total).Error; err != nil {

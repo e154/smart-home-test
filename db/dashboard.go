@@ -34,7 +34,7 @@ import (
 
 // Dashboards ...
 type Dashboards struct {
-	Db *gorm.DB
+	*Common
 }
 
 // Dashboard ...
@@ -57,7 +57,7 @@ func (d *Dashboard) TableName() string {
 
 // Add ...
 func (n Dashboards) Add(ctx context.Context, board *Dashboard) (id int64, err error) {
-	if err = n.Db.WithContext(ctx).Create(&board).Error; err != nil {
+	if err = n.DB(ctx).Create(&board).Error; err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
@@ -80,7 +80,7 @@ func (n Dashboards) Add(ctx context.Context, board *Dashboard) (id int64, err er
 // GetById ...
 func (n Dashboards) GetById(ctx context.Context, id int64) (board *Dashboard, err error) {
 	board = &Dashboard{}
-	err = n.Db.WithContext(ctx).Model(board).
+	err = n.DB(ctx).Model(board).
 		Where("id = ?", id).
 		Preload("Area").
 		Preload("Tabs").
@@ -108,7 +108,7 @@ func (n Dashboards) Update(ctx context.Context, board *Dashboard) (err error) {
 		"area_id":     board.AreaId,
 	}
 
-	if err = n.Db.WithContext(ctx).Model(&Dashboard{Id: board.Id}).Updates(q).Error; err != nil {
+	if err = n.DB(ctx).Model(&Dashboard{Id: board.Id}).Updates(q).Error; err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
@@ -131,7 +131,7 @@ func (n Dashboards) Delete(ctx context.Context, id int64) (err error) {
 	if id == 0 {
 		return
 	}
-	if err = n.Db.WithContext(ctx).Delete(&Dashboard{Id: id}).Error; err != nil {
+	if err = n.DB(ctx).Delete(&Dashboard{Id: id}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrDashboardDelete, err.Error())
 	}
 	return
@@ -140,13 +140,13 @@ func (n Dashboards) Delete(ctx context.Context, id int64) (err error) {
 // List ...
 func (n *Dashboards) List(ctx context.Context, limit, offset int, orderBy, sort string) (list []*Dashboard, total int64, err error) {
 
-	if err = n.Db.WithContext(ctx).Model(Dashboard{}).Count(&total).Error; err != nil {
+	if err = n.DB(ctx).Model(Dashboard{}).Count(&total).Error; err != nil {
 		err = errors.Wrap(apperr.ErrDashboardGet, err.Error())
 		return
 	}
 
 	list = make([]*Dashboard, 0)
-	q := n.Db.WithContext(ctx).
+	q := n.DB(ctx).
 		Preload("Area").
 		Limit(limit).
 		Offset(offset)
@@ -169,7 +169,7 @@ func (n *Dashboards) List(ctx context.Context, limit, offset int, orderBy, sort 
 // Search ...
 func (d *Dashboards) Search(ctx context.Context, query string, limit, offset int) (list []*Dashboard, total int64, err error) {
 
-	q := d.Db.Model(&Dashboard{}).
+	q := d.DB(ctx).Model(&Dashboard{}).
 		Where("name LIKE ?", "%"+query+"%")
 
 	if err = q.Count(&total).Error; err != nil {

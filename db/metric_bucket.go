@@ -24,16 +24,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
-	"gorm.io/gorm"
-
 	"github.com/e154/smart-home/common"
 	"github.com/e154/smart-home/common/apperr"
+	"github.com/pkg/errors"
 )
 
 // MetricBuckets ...
 type MetricBuckets struct {
-	Db        *gorm.DB
+	*Common
 	Timescale bool
 }
 
@@ -53,7 +51,7 @@ func (d *MetricBucket) TableName() string {
 
 // Add ...
 func (n MetricBuckets) Add(ctx context.Context, metric *MetricBucket) (err error) {
-	if err = n.Db.WithContext(ctx).Create(&metric).Error; err != nil {
+	if err = n.DB(ctx).Create(&metric).Error; err != nil {
 		err = errors.Wrap(apperr.ErrMetricBucketAdd, err.Error())
 	}
 	return
@@ -125,7 +123,7 @@ WHERE c.metric_id = ? and c.time > ? and c.time < ?
 GROUP BY mins
 ORDER BY mins ASC
 LIMIT 3600`
-		if err = n.Db.WithContext(ctx).Raw(fmt.Sprintf(q, interval, str), metricId, from.UTC().Format(time.RFC3339), to.UTC().Format(time.RFC3339)).Scan(&list).Error; err != nil {
+		if err = n.DB(ctx).Raw(fmt.Sprintf(q, interval, str), metricId, from.UTC().Format(time.RFC3339), to.UTC().Format(time.RFC3339)).Scan(&list).Error; err != nil {
 			err = errors.Wrap(apperr.ErrMetricBucketGet, err.Error())
 		}
 
@@ -143,7 +141,7 @@ WHERE c.metric_id = ? and c.time > ? and c.time < ?
 GROUP BY round(extract('epoch' from c.time) / %[1]d)
 order by time asc
 LIMIT 3600`
-	if err = n.Db.WithContext(ctx).Raw(fmt.Sprintf(q, num, str), metricId, from.UTC().Format(time.RFC3339), to.UTC().Format(time.RFC3339)).Scan(&list).Error; err != nil {
+	if err = n.DB(ctx).Raw(fmt.Sprintf(q, num, str), metricId, from.UTC().Format(time.RFC3339), to.UTC().Format(time.RFC3339)).Scan(&list).Error; err != nil {
 		err = errors.Wrap(apperr.ErrMetricBucketGet, err.Error())
 	}
 
@@ -153,11 +151,11 @@ LIMIT 3600`
 // DeleteOldest ...
 func (n *MetricBuckets) DeleteOldest(ctx context.Context, days int) (err error) {
 	bucket := &MetricBucket{}
-	if err = n.Db.WithContext(ctx).Last(&bucket).Error; err != nil {
+	if err = n.DB(ctx).Last(&bucket).Error; err != nil {
 		err = errors.Wrap(apperr.ErrLogDelete, err.Error())
 		return
 	}
-	err = n.Db.WithContext(ctx).Delete(&MetricBucket{},
+	err = n.DB(ctx).Delete(&MetricBucket{},
 		fmt.Sprintf(`time < CAST('%s' AS DATE) - interval '%d days'`,
 			bucket.Time.UTC().Format("2006-01-02 15:04:05"), days)).Error
 	if err != nil {
@@ -168,7 +166,7 @@ func (n *MetricBuckets) DeleteOldest(ctx context.Context, days int) (err error) 
 
 // DeleteByMetricId ...
 func (n MetricBuckets) DeleteByMetricId(ctx context.Context, metricId int64) (err error) {
-	if err = n.Db.WithContext(ctx).Delete(&MetricBucket{}, "metric_id = ?", metricId).Error; err != nil {
+	if err = n.DB(ctx).Delete(&MetricBucket{}, "metric_id = ?", metricId).Error; err != nil {
 		err = errors.Wrap(apperr.ErrMetricBucketDelete, err.Error())
 	}
 	return
@@ -176,7 +174,7 @@ func (n MetricBuckets) DeleteByMetricId(ctx context.Context, metricId int64) (er
 
 // DeleteById ...
 func (n MetricBuckets) DeleteById(ctx context.Context, id int64) (err error) {
-	if err = n.Db.WithContext(ctx).Delete(&MetricBucket{}, "id = ?", id).Error; err != nil {
+	if err = n.DB(ctx).Delete(&MetricBucket{}, "id = ?", id).Error; err != nil {
 		err = errors.Wrap(apperr.ErrMetricBucketDelete, err.Error())
 	}
 	return
@@ -184,7 +182,7 @@ func (n MetricBuckets) DeleteById(ctx context.Context, id int64) (err error) {
 
 // AddMultiple ...
 func (n *MetricBuckets) AddMultiple(ctx context.Context, buckets []*MetricBucket) (err error) {
-	if err = n.Db.WithContext(ctx).Create(&buckets).Error; err != nil {
+	if err = n.DB(ctx).Create(&buckets).Error; err != nil {
 		err = errors.Wrap(apperr.ErrMetricBucketAdd, err.Error())
 	}
 	return

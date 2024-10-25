@@ -19,7 +19,9 @@
 package endpoint
 
 import (
+	"bufio"
 	"context"
+	"mime/multipart"
 
 	"github.com/pkg/errors"
 
@@ -131,6 +133,45 @@ func (p *PluginEndpoint) UpdateSettings(ctx context.Context, name string, settin
 func (p *PluginEndpoint) Readme(ctx context.Context, name string, note *string, lang *string) (result []byte, err error) {
 
 	result, err = p.supervisor.GetPluginReadme(ctx, name, note, lang)
+
+	return
+}
+
+func (p *PluginEndpoint) RemovePlugin(ctx context.Context, name string) (err error) {
+
+	return
+}
+
+// Upload ...
+func (p *PluginEndpoint) Upload(ctx context.Context, files map[string][]*multipart.FileHeader) (pluginList []*m.Plugin, errs []error, err error) {
+
+	//if p.checkSuperUser(ctx) {
+	//	err = apperr.ErrPluginUploadForbidden
+	//	return
+	//}
+
+	pluginList = make([]*m.Plugin, 0)
+	errs = make([]error, 0)
+
+	for _, fileHeader := range files {
+
+		file, _err := fileHeader[0].Open()
+		if _err != nil {
+			errs = append(errs, _err)
+			continue
+		}
+
+		reader := bufio.NewReader(file)
+		var newPlugin *m.Plugin
+		newPlugin, _err = p.supervisor.UploadPlugin(ctx, reader, fileHeader[0].Filename)
+		if _err != nil {
+			errs = append(errs, _err)
+			continue
+		}
+		pluginList = append(pluginList, newPlugin)
+
+		file.Close()
+	}
 
 	return
 }

@@ -37,10 +37,7 @@ func NewMigrationEncryptor(adaptors *adaptors.Adaptors) *MigrationEncryptor {
 	}
 }
 
-func (n *MigrationEncryptor) Up(ctx context.Context, adaptors *adaptors.Adaptors) error {
-	if adaptors != nil {
-		n.adaptors = adaptors
-	}
+func (n *MigrationEncryptor) Up(ctx context.Context) error {
 
 	err := AddVariableIfNotExist(n.adaptors, ctx, "encryptor", hex.EncodeToString(encryptor.GenKey()))
 	So(err, ShouldBeNil)

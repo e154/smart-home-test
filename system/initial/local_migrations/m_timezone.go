@@ -34,10 +34,7 @@ func NewMigrationTimezone(adaptors *adaptors.Adaptors) *MigrationTimezone {
 	}
 }
 
-func (n *MigrationTimezone) Up(ctx context.Context, adaptors *adaptors.Adaptors) error {
-	if adaptors != nil {
-		n.adaptors = adaptors
-	}
+func (n *MigrationTimezone) Up(ctx context.Context) error {
 
 	return AddVariableIfNotExist(n.adaptors, ctx, "timezone", "Asia/Colombo")
 }

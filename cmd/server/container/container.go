@@ -20,7 +20,7 @@ package container
 
 import (
 	"github.com/e154/bus"
-	"github.com/e154/smart-home/adaptors"
+	"github.com/e154/smart-home/adaptors/gorm"
 	"github.com/e154/smart-home/api"
 	"github.com/e154/smart-home/api/controllers"
 	"github.com/e154/smart-home/common/web"
@@ -67,7 +67,7 @@ func BuildContainer(opt fx.Option) (app *fx.App) {
 			NewMigrationsConfig,
 			migrations.NewMigrations,
 			web.New,
-			adaptors.NewAdaptors,
+			gorm.NewAdaptors,
 			scheduler.NewScheduler,
 			NewLoggerConfig,
 			logging.NewLogger,
@@ -86,6 +86,7 @@ func BuildContainer(opt fx.Option) (app *fx.App) {
 			mqtt.NewMqtt,
 			access_list.NewAccessListService,
 			rbac.NewEchoAccessFilter,
+			jwt_manager.NewJwtManager,
 			NewZigbee2mqttConfig,
 			zigbee2mqtt.NewZigbee2mqtt,
 			storage.NewStorage,
@@ -100,7 +101,6 @@ func BuildContainer(opt fx.Option) (app *fx.App) {
 			handlers.NewEventHandler,
 			NewBackupConfig,
 			client.NewGateClient,
-			jwt_manager.NewJwtManager,
 		),
 		fx.Logger(NewPrinter()),
 		opt,

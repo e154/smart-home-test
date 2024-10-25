@@ -2399,6 +2399,28 @@ paths:
           $ref: '#/components/responses/HTTP-401'
       security:
         - ApiKeyAuth: [ ]
+    delete:
+      tags:
+        - PluginService
+      summary: remove plugin
+      operationId: PluginService_RemovePlugin
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: A successful response.
+        '400':
+          $ref: '#/components/responses/HTTP-400'
+        '401':
+          $ref: '#/components/responses/HTTP-401'
+        '409':
+          $ref: '#/components/responses/HTTP-409'
+      security:
+        - ApiKeyAuth: [ ]
   /v1/plugin/{name}/disable:
     post:
       tags:
@@ -2583,6 +2605,41 @@ paths:
           $ref: '#/components/responses/HTTP-401'
       security:
         - ApiKeyAuth: [ ]
+  /v1/plugins/upload:
+    post:
+      tags:
+        - PluginService
+      summary: upload plugin archive
+      operationId: PluginService_UploadPlugin
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                filename:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+        required: true
+      responses:
+        200:
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/apiPlugin'
+        '400':
+          $ref: '#/components/responses/HTTP-400'
+        '401':
+          $ref: '#/components/responses/HTTP-401'
+        '413':
+          $ref: '#/components/responses/HTTP-413'
+      security:
+        - ApiKeyAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Accept-JSON'
   /v1/role:
     post:
       tags:

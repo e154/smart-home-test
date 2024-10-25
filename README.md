@@ -149,14 +149,15 @@ All the contributors are welcome. If you would like to be the contributor please
 
 Thank you for your understanding!
 
-### See also
+### Star History
 
-* [OpenHub](https://www.openhab.org)
-* [iridiummobile](http://www.iridiummobile.net)
-* [amx](https://www.amx.com/en-US)
-* [Home Assistant](https://www.home-assistant.io/integrations/)
-* [Majordomo](https://majordomohome.com)
-* [Domoticz](https://www.domoticz.com/)
+<a href="https://star-history.com/#e154/smart-home&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=e154/smart-home&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=e154/smart-home&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=e154/smart-home&type=Date" />
+ </picture>
+</a>
 
 ### LICENSE
 

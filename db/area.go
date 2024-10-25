@@ -36,7 +36,7 @@ import (
 
 // Areas ...
 type Areas struct {
-	Db *gorm.DB
+	*Common
 }
 
 // Area ...
@@ -57,7 +57,7 @@ func (d *Area) TableName() string {
 
 // Add ...
 func (n *Areas) Add(ctx context.Context, area *Area) (id int64, err error) {
-	if err = n.Db.WithContext(ctx).Create(&area).Error; err != nil {
+	if err = n.DB(ctx).Create(&area).Error; err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
@@ -81,7 +81,7 @@ func (n *Areas) Add(ctx context.Context, area *Area) (id int64, err error) {
 func (n *Areas) GetByName(ctx context.Context, name string) (area *Area, err error) {
 
 	area = &Area{}
-	err = n.Db.WithContext(ctx).Model(area).
+	err = n.DB(ctx).Model(area).
 		Where("name = ?", name).
 		First(&area).
 		Error
@@ -95,7 +95,7 @@ func (n *Areas) GetByName(ctx context.Context, name string) (area *Area, err err
 // Search ...
 func (n *Areas) Search(ctx context.Context, query string, limit, offset int) (list []*Area, total int64, err error) {
 
-	q := n.Db.WithContext(ctx).Model(&Area{}).
+	q := n.DB(ctx).Model(&Area{}).
 		Where("name LIKE ?", "%"+query+"%")
 
 	if err = q.Count(&total).Error; err != nil {
@@ -123,7 +123,7 @@ func (n *Areas) DeleteByName(ctx context.Context, name string) (err error) {
 		return
 	}
 
-	if err = n.Db.WithContext(ctx).Delete(&Area{}, "name = ?", name).Error; err != nil {
+	if err = n.DB(ctx).Delete(&Area{}, "name = ?", name).Error; err != nil {
 		err = errors.Wrap(apperr.ErrAreaDelete, "zero name")
 	}
 	return
@@ -132,7 +132,7 @@ func (n *Areas) DeleteByName(ctx context.Context, name string) (err error) {
 // Clean ...
 func (n *Areas) Clean(ctx context.Context) (err error) {
 
-	err = n.Db.WithContext(ctx).Exec(`delete 
+	err = n.DB(ctx).Exec(`delete 
 from areas
 where id not in (
     select DISTINCT me.area_id
@@ -150,7 +150,7 @@ where id not in (
 
 // Update ...
 func (n *Areas) Update(ctx context.Context, area *Area) (err error) {
-	err = n.Db.WithContext(ctx).Model(&Area{Id: area.Id}).Updates(map[string]interface{}{
+	err = n.DB(ctx).Model(&Area{Id: area.Id}).Updates(map[string]interface{}{
 		"name":        area.Name,
 		"description": area.Description,
 		"payload":     area.Payload,
@@ -178,13 +178,13 @@ func (n *Areas) Update(ctx context.Context, area *Area) (err error) {
 // List ...
 func (n *Areas) List(ctx context.Context, limit, offset int, orderBy, sort string) (list []*Area, total int64, err error) {
 
-	if err = n.Db.WithContext(ctx).Model(Area{}).Count(&total).Error; err != nil {
+	if err = n.DB(ctx).Model(Area{}).Count(&total).Error; err != nil {
 		err = errors.Wrap(apperr.ErrAreaList, err.Error())
 		return
 	}
 
 	list = make([]*Area, 0)
-	q := n.Db.WithContext(ctx).Model(&Area{}).
+	q := n.DB(ctx).Model(&Area{}).
 		Limit(limit).
 		Offset(offset)
 
@@ -206,7 +206,7 @@ func (n *Areas) List(ctx context.Context, limit, offset int, orderBy, sort strin
 // GetById ...
 func (n *Areas) GetById(ctx context.Context, areaId int64) (area *Area, err error) {
 	area = &Area{Id: areaId}
-	if err = n.Db.WithContext(ctx).First(&area).Error; err != nil {
+	if err = n.DB(ctx).First(&area).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			err = errors.Wrap(apperr.ErrAreaNotFound, fmt.Sprintf("id \"%d\"", areaId))
 			return
@@ -234,7 +234,7 @@ func (n *Areas) GetById(ctx context.Context, areaId int64) (area *Area, err erro
 //	list = make([]*Area, 0)
 //	q := fmt.Sprintf(query, point.Lon, point.Lat)
 //
-//	err = a.Db.WithContext(ctx).Raw(q).
+//	err = a.DB(ctx).Raw(q).
 //		Limit(limit).
 //		Offset(offset).Scan(&list).Error
 //	if err != nil {
@@ -285,7 +285,7 @@ func (n *Areas) GetById(ctx context.Context, areaId int64) (area *Area, err erro
 //   ST_Transform((select polygon from areas where id = %d)::geometry, 4326)
 //)`
 //	q := fmt.Sprintf(query, point.Lat, point.Lon, areaId)
-//	err = a.Db.WithContext(ctx).Raw(q).Scan(&distance).Error
+//	err = a.DB(ctx).Raw(q).Scan(&distance).Error
 //	if err != nil {
 //		err = errors.Wrap(apperr.ErrAreaList, err.Error())
 //		return
@@ -302,7 +302,7 @@ func (n *Areas) GetById(ctx context.Context, areaId int64) (area *Area, err erro
 //   ST_Transform(ST_GeomFromText('POINT (%f %f)', 4326)::geometry, 4326)
 //)`
 //	q := fmt.Sprintf(query, point1.Lat, point1.Lon, point2.Lat, point2.Lon)
-//	err = a.Db.WithContext(ctx).Raw(q).Scan(&distance).Error
+//	err = a.DB(ctx).Raw(q).Scan(&distance).Error
 //	if err != nil {
 //		err = errors.Wrap(apperr.ErrAreaList, err.Error())
 //		return

@@ -34,10 +34,7 @@ func NewMigrationAddVar1(adaptors *adaptors.Adaptors) *MigrationAddVar1 {
 	}
 }
 
-func (n *MigrationAddVar1) Up(ctx context.Context, adaptors *adaptors.Adaptors) error {
-	if adaptors != nil {
-		n.adaptors = adaptors
-	}
+func (n *MigrationAddVar1) Up(ctx context.Context) error {
 
 	AddVariableIfNotExist(n.adaptors, ctx, "restartComponentIfScriptChanged", "false")
 	AddVariableIfNotExist(n.adaptors, ctx, "sendTheBackupInPartsMb", "0")

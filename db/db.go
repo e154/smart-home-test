@@ -17,3 +17,35 @@
 // <https://www.gnu.org/licenses/>.
 
 package db
+
+import (
+	"context"
+	"gorm.io/gorm"
+)
+
+type TransactionKey string
+
+const GormTransaction TransactionKey = "gorm_transaction"
+
+func ExtractTransaction(ctx context.Context) *gorm.DB {
+	tr, ok := ctx.Value(GormTransaction).(*gorm.DB)
+	if !ok {
+		return nil
+	}
+
+	return tr
+}
+
+type Common struct {
+	Db *gorm.DB
+}
+
+func (c *Common) DB(ctx context.Context) *gorm.DB {
+
+	db := c.Db
+	if tr := ExtractTransaction(ctx); tr != nil {
+		db = tr
+	}
+
+	return db.WithContext(ctx)
+}

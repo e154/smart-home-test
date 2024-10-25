@@ -37,10 +37,7 @@ func NewMigrationJavascriptV2(adaptors *adaptors.Adaptors) *MigrationJavascriptV
 	}
 }
 
-func (n *MigrationJavascriptV2) Up(ctx context.Context, adaptors *adaptors.Adaptors) error {
-	if adaptors != nil {
-		n.adaptors = adaptors
-	}
+func (n *MigrationJavascriptV2) Up(ctx context.Context) error {
 
 	list, _, err := n.adaptors.Script.List(ctx, 999, 0, "desc", "id", nil, nil)
 	So(err, ShouldBeNil)

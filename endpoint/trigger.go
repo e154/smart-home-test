@@ -90,9 +90,17 @@ func (n *TriggerEndpoint) Update(ctx context.Context, params *m.UpdateTrigger) (
 		return
 	}
 
-	if err = n.adaptors.Trigger.Update(ctx, params); err != nil {
-		return
-	}
+	err = n.adaptors.Transaction.Do(ctx, func(ctx context.Context) error {
+
+		if err = n.adaptors.Trigger.DeleteEntity(ctx, params.Id); err != nil {
+			return err
+		}
+
+		if err = n.adaptors.Trigger.Update(ctx, params); err != nil {
+			return err
+		}
+		return nil
+	})
 
 	if result, err = n.adaptors.Trigger.GetById(ctx, params.Id); err != nil {
 		return

@@ -57,18 +57,18 @@ func (t *Migrations) Up(ctx context.Context, adaptors *adaptors.Adaptors, ver st
 
 	go func() {
 		var err error
-		var ok []string
+		var done []string
 
 		defer func() {
 			ch <- err
 			close(ch)
-			if len(ok) > 0 {
+			if len(done) > 0 {
 				fmt.Println("\n\r")
-				for _, item := range ok {
+				for _, item := range done {
 					log.Infof("migration '%s' ... installed", item)
 				}
 			}
-			log.Infof("Applied %d migrations!", len(ok))
+			log.Infof("Applied %d migrations!", len(done))
 		}()
 
 		var list []string
@@ -106,16 +106,17 @@ func (t *Migrations) Up(ctx context.Context, adaptors *adaptors.Adaptors, ver st
 				return
 			}
 
-			newVersion = reflect.TypeOf(migration).String()
-			tx := adaptors.Begin()
-			if err = migration.Up(ctx, tx); err != nil {
-				fmt.Printf("\n\nmigration '%s' ... error\n", newVersion)
-				log.Error(err.Error())
-				_ = tx.Rollback()
-				return
+			itemVersion := reflect.TypeOf(migration).String()
+
+			err = adaptors.Transaction.Do(ctx, func(ctx context.Context) error {
+				return migration.Up(ctx)
+			})
+			if err != nil {
+				log.Errorf("migration '%s' ended with error: %s", itemVersion, err.Error())
+				break
 			}
-			_ = tx.Commit()
-			ok = append(ok, newVersion)
+			newVersion = itemVersion
+			done = append(done, itemVersion)
 		}
 	}()
 

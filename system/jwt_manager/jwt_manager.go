@@ -148,7 +148,7 @@ func (j *jwtManager) getSecretKey() (hmacKey []byte, err error) {
 			Name:   "hmacKey",
 			Value:  common.ComputeHmac256(),
 		}
-		if err = j.adaptors.Variable.Add(context.Background(), variable); err != nil {
+		if err = j.adaptors.Variable.CreateOrUpdate(context.Background(), variable); err != nil {
 			log.Error(err.Error())
 		}
 	}

@@ -21,92 +21,13 @@ package adaptors
 import (
 	"context"
 
-	"github.com/e154/smart-home/db"
 	m "github.com/e154/smart-home/models"
-	"gorm.io/gorm"
 )
 
-// IAlexaIntent ...
-type IAlexaIntent interface {
+// AlexaIntentRepo ...
+type AlexaIntentRepo interface {
 	Add(ctx context.Context, ver *m.AlexaIntent) (err error)
 	GetByName(ctx context.Context, name string) (ver *m.AlexaIntent, err error)
 	Update(ctx context.Context, ver *m.AlexaIntent) (err error)
 	Delete(ctx context.Context, ver *m.AlexaIntent) (err error)
-	fromDb(dbVer *db.AlexaIntent) (ver *m.AlexaIntent)
-	toDb(ver *m.AlexaIntent) (dbVer *db.AlexaIntent)
-}
-
-// AlexaIntent ...
-type AlexaIntent struct {
-	IAlexaIntent
-	table *db.AlexaIntents
-	db    *gorm.DB
-}
-
-// GetAlexaIntentAdaptor ...
-func GetAlexaIntentAdaptor(d *gorm.DB) IAlexaIntent {
-	return &AlexaIntent{
-		table: &db.AlexaIntents{Db: d},
-		db:    d,
-	}
-}
-
-// Add ...
-func (n *AlexaIntent) Add(ctx context.Context, ver *m.AlexaIntent) error {
-	return n.table.Add(ctx, n.toDb(ver))
-}
-
-// GetByName ...
-func (n *AlexaIntent) GetByName(ctx context.Context, name string) (ver *m.AlexaIntent, err error) {
-
-	var dbVer *db.AlexaIntent
-	if dbVer, err = n.table.GetByName(ctx, name); err != nil {
-		return
-	}
-
-	ver = n.fromDb(dbVer)
-
-	return
-}
-
-// Update ...
-func (n *AlexaIntent) Update(ctx context.Context, ver *m.AlexaIntent) (err error) {
-	err = n.table.Update(ctx, n.toDb(ver))
-	return
-}
-
-// Delete ...
-func (n *AlexaIntent) Delete(ctx context.Context, ver *m.AlexaIntent) (err error) {
-	err = n.table.Delete(ctx, n.toDb(ver))
-	return
-}
-
-func (n *AlexaIntent) fromDb(dbVer *db.AlexaIntent) (ver *m.AlexaIntent) {
-	ver = &m.AlexaIntent{
-		Name:         dbVer.Name,
-		AlexaSkillId: dbVer.AlexaSkillId,
-		ScriptId:     dbVer.ScriptId,
-		Description:  dbVer.Description,
-		CreatedAt:    dbVer.CreatedAt,
-		UpdatedAt:    dbVer.UpdatedAt,
-	}
-
-	if dbVer.Script != nil {
-		scriptAdaptor := GetScriptAdaptor(n.db)
-		ver.Script, _ = scriptAdaptor.fromDb(dbVer.Script)
-	}
-
-	return
-}
-
-func (n *AlexaIntent) toDb(ver *m.AlexaIntent) (dbVer *db.AlexaIntent) {
-
-	dbVer = &db.AlexaIntent{
-		Name:         ver.Name,
-		AlexaSkillId: ver.AlexaSkillId,
-		ScriptId:     ver.ScriptId,
-		Description:  ver.Description,
-	}
-
-	return
 }

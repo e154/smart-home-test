@@ -31,7 +31,7 @@ import (
 
 // AlexaIntents ...
 type AlexaIntents struct {
-	Db *gorm.DB
+	*Common
 }
 
 // AlexaIntent ...
@@ -53,7 +53,7 @@ func (d *AlexaIntent) TableName() string {
 
 // Add ...
 func (n AlexaIntents) Add(ctx context.Context, v *AlexaIntent) (err error) {
-	if err = n.Db.WithContext(ctx).Create(&v).Error; err != nil {
+	if err = n.DB(ctx).Create(&v).Error; err != nil {
 		err = errors.Wrap(apperr.ErrAlexaIntentAdd, err.Error())
 	}
 	return
@@ -62,7 +62,7 @@ func (n AlexaIntents) Add(ctx context.Context, v *AlexaIntent) (err error) {
 // GetByName ...
 func (n AlexaIntents) GetByName(ctx context.Context, name string) (intent *AlexaIntent, err error) {
 	intent = &AlexaIntent{}
-	if err = n.Db.WithContext(ctx).Model(intent).Where("name = ?", name).Error; err != nil {
+	if err = n.DB(ctx).Model(intent).Where("name = ?", name).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			err = errors.Wrap(apperr.ErrAlexaIntentNotFound, fmt.Sprintf("name \"w%s\"", name))
 			return
@@ -74,7 +74,7 @@ func (n AlexaIntents) GetByName(ctx context.Context, name string) (intent *Alexa
 
 // Update ...
 func (n AlexaIntents) Update(ctx context.Context, v *AlexaIntent) (err error) {
-	err = n.Db.WithContext(ctx).Model(v).Where("name = ? and alexa_skill_id = ?", v.Name, v.AlexaSkillId).Updates(map[string]interface{}{
+	err = n.DB(ctx).Model(v).Where("name = ? and alexa_skill_id = ?", v.Name, v.AlexaSkillId).Updates(map[string]interface{}{
 		"name":        v.Name,
 		"description": v.Description,
 		"script_id":   v.ScriptId,
@@ -87,7 +87,7 @@ func (n AlexaIntents) Update(ctx context.Context, v *AlexaIntent) (err error) {
 
 // Delete ...
 func (n AlexaIntents) Delete(ctx context.Context, v *AlexaIntent) (err error) {
-	if err = n.Db.WithContext(ctx).Delete(&AlexaIntent{}, "name = ? and alexa_skill_id = ?", v.Name, v.AlexaSkillId).Error; err != nil {
+	if err = n.DB(ctx).Delete(&AlexaIntent{}, "name = ? and alexa_skill_id = ?", v.Name, v.AlexaSkillId).Error; err != nil {
 		err = errors.Wrap(apperr.ErrAlexaIntentDelete, err.Error())
 	}
 	return

@@ -30,7 +30,7 @@ import (
 
 // Triggers ...
 type Triggers struct {
-	Db *gorm.DB
+	*Common
 }
 
 // Trigger ...
@@ -57,7 +57,7 @@ func (*Trigger) TableName() string {
 
 // Add ...
 func (t Triggers) Add(ctx context.Context, trigger *Trigger) (id int64, err error) {
-	if err = t.Db.WithContext(ctx).
+	if err = t.DB(ctx).
 		Omit("Entities.*").
 		Create(&trigger).Error; err != nil {
 		err = errors.Wrap(apperr.ErrTriggerAdd, err.Error())
@@ -70,7 +70,7 @@ func (t Triggers) Add(ctx context.Context, trigger *Trigger) (id int64, err erro
 // GetById ...
 func (t Triggers) GetById(ctx context.Context, id int64) (trigger *Trigger, err error) {
 	trigger = &Trigger{}
-	err = t.Db.WithContext(ctx).Model(trigger).
+	err = t.DB(ctx).Model(trigger).
 		Where("id = ?", id).
 		Preload("Entities").
 		Preload("Script").
@@ -90,7 +90,7 @@ func (t Triggers) GetById(ctx context.Context, id int64) (trigger *Trigger, err 
 
 // Update ...
 func (t Triggers) Update(ctx context.Context, trigger *Trigger) (err error) {
-	err = t.Db.WithContext(ctx).
+	err = t.DB(ctx).
 		Omit("Entities.*").
 		Save(trigger).Error
 	if err != nil {
@@ -101,7 +101,7 @@ func (t Triggers) Update(ctx context.Context, trigger *Trigger) (err error) {
 
 // Delete ...
 func (t Triggers) Delete(ctx context.Context, id int64) (err error) {
-	if err = t.Db.WithContext(ctx).Delete(&Trigger{}, "id = ?", id).Error; err != nil {
+	if err = t.DB(ctx).Delete(&Trigger{}, "id = ?", id).Error; err != nil {
 		err = errors.Wrap(apperr.ErrTriggerDelete, err.Error())
 	}
 	return
@@ -110,13 +110,13 @@ func (t Triggers) Delete(ctx context.Context, id int64) (err error) {
 // List ...
 func (t Triggers) List(ctx context.Context, limit, offset int, orderBy, sort string, onlyEnabled bool) (list []*Trigger, total int64, err error) {
 
-	if err = t.Db.WithContext(ctx).Model(Trigger{}).Count(&total).Error; err != nil {
+	if err = t.DB(ctx).Model(Trigger{}).Count(&total).Error; err != nil {
 		err = errors.Wrap(apperr.ErrTriggerList, err.Error())
 		return
 	}
 
 	list = make([]*Trigger, 0)
-	q := t.Db.WithContext(ctx).Model(&Trigger{})
+	q := t.DB(ctx).Model(&Trigger{})
 
 	if onlyEnabled {
 		q = q.Where("enabled = ?", true)
@@ -143,13 +143,13 @@ func (t Triggers) List(ctx context.Context, limit, offset int, orderBy, sort str
 // ListPlain ...
 func (t Triggers) ListPlain(ctx context.Context, limit, offset int, orderBy, sort string, onlyEnabled bool, ids *[]uint64) (list []*Trigger, total int64, err error) {
 
-	if err = t.Db.WithContext(ctx).Model(Trigger{}).Count(&total).Error; err != nil {
+	if err = t.DB(ctx).Model(Trigger{}).Count(&total).Error; err != nil {
 		err = errors.Wrap(apperr.ErrTriggerList, err.Error())
 		return
 	}
 
 	list = make([]*Trigger, 0)
-	q := t.Db.WithContext(ctx).Model(&Trigger{})
+	q := t.DB(ctx).Model(&Trigger{})
 
 	if onlyEnabled {
 		q = q.Where("enabled = ?", true)
@@ -176,7 +176,7 @@ func (t Triggers) ListPlain(ctx context.Context, limit, offset int, orderBy, sor
 // Search ...
 func (t Triggers) Search(ctx context.Context, query string, limit, offset int) (list []*Trigger, total int64, err error) {
 
-	q := t.Db.WithContext(ctx).Model(&Trigger{}).
+	q := t.DB(ctx).Model(&Trigger{}).
 		Where("name LIKE ?", "%"+query+"%")
 
 	if err = q.Count(&total).Error; err != nil {
@@ -199,7 +199,7 @@ func (t Triggers) Search(ctx context.Context, query string, limit, offset int) (
 
 // Enable ...
 func (t Triggers) Enable(ctx context.Context, id int64) (err error) {
-	if err = t.Db.Model(&Trigger{Id: id}).Updates(map[string]interface{}{"enabled": true}).Error; err != nil {
+	if err = t.DB(ctx).Model(&Trigger{Id: id}).Updates(map[string]interface{}{"enabled": true}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrTriggerUpdate, err.Error())
 		return
 	}
@@ -208,7 +208,7 @@ func (t Triggers) Enable(ctx context.Context, id int64) (err error) {
 
 // Disable ...
 func (t Triggers) Disable(ctx context.Context, id int64) (err error) {
-	if err = t.Db.Model(&Trigger{Id: id}).Updates(map[string]interface{}{"enabled": false}).Error; err != nil {
+	if err = t.DB(ctx).Model(&Trigger{Id: id}).Updates(map[string]interface{}{"enabled": false}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrTriggerUpdate, err.Error())
 		return
 	}
@@ -217,7 +217,7 @@ func (t Triggers) Disable(ctx context.Context, id int64) (err error) {
 
 // DeleteEntity ...
 func (t Triggers) DeleteEntity(ctx context.Context, id int64) (err error) {
-	if err = t.Db.WithContext(ctx).Model(&Trigger{Id: id}).Association("Entities").Clear(); err != nil {
+	if err = t.DB(ctx).Model(&Trigger{Id: id}).Association("Entities").Clear(); err != nil {
 		err = errors.Wrap(apperr.ErrTriggerDeleteEntity, err.Error())
 	}
 	return

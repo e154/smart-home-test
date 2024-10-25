@@ -262,6 +262,9 @@ type ServerInterface interface {
 	// sign out user
 	// (POST /v1/password_reset)
 	AuthServicePasswordReset(ctx echo.Context, params AuthServicePasswordResetParams) error
+	// remove plugin
+	// (DELETE /v1/plugin/{name})
+	PluginServiceRemovePlugin(ctx echo.Context, name string) error
 	// get plugin
 	// (GET /v1/plugin/{name})
 	PluginServiceGetPlugin(ctx echo.Context, name string) error
@@ -283,6 +286,9 @@ type ServerInterface interface {
 	// search plugin
 	// (GET /v1/plugins/search)
 	PluginServiceSearchPlugin(ctx echo.Context, params PluginServiceSearchPluginParams) error
+	// upload plugin archive
+	// (POST /v1/plugins/upload)
+	PluginServiceUploadPlugin(ctx echo.Context, params PluginServiceUploadPluginParams) error
 	// add new role
 	// (POST /v1/role)
 	RoleServiceAddRole(ctx echo.Context, params RoleServiceAddRoleParams) error
@@ -2944,6 +2950,24 @@ func (w *ServerInterfaceWrapper) AuthServicePasswordReset(ctx echo.Context) erro
 	return err
 }
 
+// PluginServiceRemovePlugin converts echo context to params.
+func (w *ServerInterfaceWrapper) PluginServiceRemovePlugin(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "name" -------------
+	var name string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "name", ctx.Param("name"), &name, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter name: %s", err))
+	}
+
+	ctx.Set(ApiKeyAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PluginServiceRemovePlugin(ctx, name)
+	return err
+}
+
 // PluginServiceGetPlugin converts echo context to params.
 func (w *ServerInterfaceWrapper) PluginServiceGetPlugin(ctx echo.Context) error {
 	var err error
@@ -3166,6 +3190,37 @@ func (w *ServerInterfaceWrapper) PluginServiceSearchPlugin(ctx echo.Context) err
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PluginServiceSearchPlugin(ctx, params)
+	return err
+}
+
+// PluginServiceUploadPlugin converts echo context to params.
+func (w *ServerInterfaceWrapper) PluginServiceUploadPlugin(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(ApiKeyAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PluginServiceUploadPluginParams
+
+	headers := ctx.Request().Header
+	// ------------- Optional header parameter "Accept" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Accept")]; found {
+		var Accept AcceptJSON
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Accept, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Accept", valueList[0], &Accept, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Accept: %s", err))
+		}
+
+		params.Accept = &Accept
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PluginServiceUploadPlugin(ctx, params)
 	return err
 }
 
@@ -5076,6 +5131,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v1/mqtt/clients", wrapper.MqttServiceGetClientList)
 	router.GET(baseURL+"/v1/mqtt/subscriptions", wrapper.MqttServiceGetSubscriptionList)
 	router.POST(baseURL+"/v1/password_reset", wrapper.AuthServicePasswordReset)
+	router.DELETE(baseURL+"/v1/plugin/:name", wrapper.PluginServiceRemovePlugin)
 	router.GET(baseURL+"/v1/plugin/:name", wrapper.PluginServiceGetPlugin)
 	router.POST(baseURL+"/v1/plugin/:name/disable", wrapper.PluginServiceDisablePlugin)
 	router.POST(baseURL+"/v1/plugin/:name/enable", wrapper.PluginServiceEnablePlugin)
@@ -5083,6 +5139,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.PUT(baseURL+"/v1/plugin/:name/settings", wrapper.PluginServiceUpdatePluginSettings)
 	router.GET(baseURL+"/v1/plugins", wrapper.PluginServiceGetPluginList)
 	router.GET(baseURL+"/v1/plugins/search", wrapper.PluginServiceSearchPlugin)
+	router.POST(baseURL+"/v1/plugins/upload", wrapper.PluginServiceUploadPlugin)
 	router.POST(baseURL+"/v1/role", wrapper.RoleServiceAddRole)
 	router.DELETE(baseURL+"/v1/role/:name", wrapper.RoleServiceDeleteRoleByName)
 	router.GET(baseURL+"/v1/role/:name", wrapper.RoleServiceGetRoleByName)

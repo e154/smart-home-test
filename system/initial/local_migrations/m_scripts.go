@@ -45,10 +45,8 @@ func (s *MigrationScripts) addScripts() (scripts []*m.Script, err error) {
 	return
 }
 
-func (n *MigrationScripts) Up(ctx context.Context, adaptors *adaptors.Adaptors) error {
-	if adaptors != nil {
-		n.adaptors = adaptors
-	}
+func (n *MigrationScripts) Up(ctx context.Context) error {
+
 	_, err := n.addScripts()
 	return err
 }

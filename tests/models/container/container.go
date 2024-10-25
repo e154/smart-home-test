@@ -20,7 +20,7 @@ package container
 
 import (
 	"github.com/e154/bus"
-	"github.com/e154/smart-home/adaptors"
+	"github.com/e154/smart-home/adaptors/gorm"
 	"github.com/e154/smart-home/common/web"
 	"github.com/e154/smart-home/endpoint"
 	"github.com/e154/smart-home/system/access_list"
@@ -28,6 +28,7 @@ import (
 	"github.com/e154/smart-home/system/backup"
 	"github.com/e154/smart-home/system/gate/client"
 	"github.com/e154/smart-home/system/initial"
+	"github.com/e154/smart-home/system/jwt_manager"
 	"github.com/e154/smart-home/system/logging"
 	"github.com/e154/smart-home/system/logging_db"
 	"github.com/e154/smart-home/system/migrations"
@@ -39,6 +40,7 @@ import (
 	"github.com/e154/smart-home/system/storage"
 	"github.com/e154/smart-home/system/stream"
 	"github.com/e154/smart-home/system/supervisor"
+	"github.com/e154/smart-home/system/validation"
 	"github.com/e154/smart-home/system/zigbee2mqtt"
 	"go.uber.org/dig"
 	"go.uber.org/fx"
@@ -49,12 +51,13 @@ func BuildContainer() (container *dig.Container) {
 
 	container = dig.New()
 	_ = container.Provide(ReadConfig)
+	_ = container.Provide(validation.NewValidate)
 	_ = container.Provide(NewOrmConfig)
 	_ = container.Provide(web.New)
 	_ = container.Provide(orm.NewOrm)
 	_ = container.Provide(NewMigrationsConfig)
 	_ = container.Provide(migrations.NewMigrations)
-	_ = container.Provide(adaptors.NewAdaptors)
+	_ = container.Provide(gorm.NewAdaptors)
 	_ = container.Provide(scheduler.NewScheduler)
 	_ = container.Provide(scripts.NewScriptService)
 	_ = container.Provide(initial.NewInitial)
@@ -75,6 +78,7 @@ func BuildContainer() (container *dig.Container) {
 	_ = container.Provide(supervisor.NewSupervisor)
 	_ = container.Provide(automation.NewAutomation)
 	_ = container.Provide(bus.NewBus)
+	_ = container.Provide(jwt_manager.NewJwtManager)
 	_ = container.Provide(endpoint.NewCommonEndpoint)
 	_ = container.Provide(endpoint.NewEndpoint)
 	_ = container.Provide(func() (lc fx.Lifecycle) {

@@ -53,11 +53,7 @@ func NewValidate(lc fx.Lifecycle,
 		lang: config.Lang,
 	}
 
-	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
-			return v.Start(ctx)
-		},
-	})
+	v.Start(context.Background())
 
 	return
 }

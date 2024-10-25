@@ -36,10 +36,7 @@ func NewMigrationGate(adaptors *adaptors.Adaptors) *MigrationGate {
 	}
 }
 
-func (n *MigrationGate) Up(ctx context.Context, adaptors *adaptors.Adaptors) error {
-	if adaptors != nil {
-		n.adaptors = adaptors
-	}
+func (n *MigrationGate) Up(ctx context.Context) error {
 
 	err := AddVariableIfNotExist(n.adaptors, ctx, "gateClientId", uuid.NewString())
 	So(err, ShouldBeNil)

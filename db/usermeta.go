@@ -23,12 +23,11 @@ import (
 
 	"github.com/e154/smart-home/common/apperr"
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 )
 
 // UserMetas ...
 type UserMetas struct {
-	Db *gorm.DB
+	*Common
 }
 
 // UserMeta ...
@@ -47,13 +46,13 @@ func (m *UserMeta) TableName() string {
 // UpdateOrCreate ...
 func (m *UserMetas) UpdateOrCreate(ctx context.Context, meta *UserMeta) (id int64, err error) {
 
-	err = m.Db.WithContext(ctx).Model(&UserMeta{}).
+	err = m.DB(ctx).Model(&UserMeta{}).
 		Where("user_id = ? and key = ?", meta.UserId, meta.Key).
 		Updates(map[string]interface{}{"value": meta.Value}).
 		Error
 
 	if err != nil {
-		if err = m.Db.WithContext(ctx).Create(&meta).Error; err != nil {
+		if err = m.DB(ctx).Create(&meta).Error; err != nil {
 			err = errors.Wrap(apperr.ErrUserMetaAdd, err.Error())
 			return
 		}

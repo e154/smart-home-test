@@ -37,7 +37,7 @@ func NewMigrationAutomations(adaptors *adaptors.Adaptors, endpoint *endpoint.End
 	}
 }
 
-func (n *MigrationAutomations) Up(ctx context.Context, adaptors *adaptors.Adaptors) (err error) {
+func (n *MigrationAutomations) Up(ctx context.Context) (err error) {
 	//if adaptors != nil {
 	//	n.adaptors = adaptors
 	//}

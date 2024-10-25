@@ -21,6 +21,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"gorm.io/gorm/clause"
 	"strings"
 	"time"
 
@@ -33,7 +34,7 @@ import (
 
 // Variables ...
 type Variables struct {
-	Db *gorm.DB
+	*Common
 }
 
 // Variable ...
@@ -52,30 +53,26 @@ func (d *Variable) TableName() string {
 	return "variables"
 }
 
-// Add ...
-func (n Variables) Add(ctx context.Context, variable Variable) (err error) {
-	if err = n.Db.WithContext(ctx).Omit("Tags.*").Create(&variable).Error; err != nil {
-		err = errors.Wrap(apperr.ErrVariableAdd, err.Error())
-	}
-	return
-}
-
 // CreateOrUpdate ...
 func (n *Variables) CreateOrUpdate(ctx context.Context, v Variable) (err error) {
-	params := map[string]interface{}{
-		"name":  v.Name,
-		"value": v.Value,
+
+	err = n.DB(ctx).Omit("Tags.*").Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "name"}},
+		DoUpdates: clause.AssignmentColumns([]string{"value", "system", "entity_id"}),
+	}).Create(&v).Error
+
+	if err != nil {
+		err = errors.Wrap(apperr.ErrVariableCreateOrUpdate, err.Error())
 	}
-	if n.Db.WithContext(ctx).Omit("Tags.*").Model(&v).Where("name = ?", v.Name).Updates(params).RowsAffected == 0 {
-		err = n.Db.WithContext(ctx).Create(&v).Error
-	}
+
 	return
 }
 
 // GetByName ...
 func (n Variables) GetByName(ctx context.Context, name string) (variable Variable, err error) {
+
 	variable = Variable{}
-	err = n.Db.WithContext(ctx).Model(&Variable{}).
+	err = n.DB(ctx).Model(&Variable{}).
 		Where("name = ?", name).
 		Preload("Tags").
 		First(&variable).
@@ -93,7 +90,7 @@ func (n Variables) GetByName(ctx context.Context, name string) (variable Variabl
 // GetAllSystem ...
 func (n Variables) GetAllSystem(ctx context.Context) (list []Variable, err error) {
 	list = make([]Variable, 0)
-	err = n.Db.WithContext(ctx).Where("system = ?", true).
+	err = n.DB(ctx).Where("system = ?", true).
 		Preload("Tags").
 		Find(&list).Error
 	if err != nil {
@@ -102,25 +99,9 @@ func (n Variables) GetAllSystem(ctx context.Context) (list []Variable, err error
 	return
 }
 
-// Update ...
-func (n Variables) Update(ctx context.Context, m Variable) (err error) {
-	err = n.Db.WithContext(ctx).
-		Omit("Tags.*").
-		Model(&Variable{Name: m.Name}).
-		Updates(map[string]interface{}{
-			"value":     m.Value,
-			"system":    m.System,
-			"entity_id": m.EntityId,
-		}).Error
-	if err != nil {
-		err = errors.Wrap(apperr.ErrVariableUpdate, err.Error())
-	}
-	return
-}
-
 // Delete ...
 func (n Variables) Delete(ctx context.Context, name string) (err error) {
-	if err = n.Db.WithContext(ctx).Delete(&Variable{Name: name}).Error; err != nil {
+	if err = n.DB(ctx).Delete(&Variable{Name: name}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrVariableDelete, err.Error())
 	}
 	return
@@ -129,7 +110,7 @@ func (n Variables) Delete(ctx context.Context, name string) (err error) {
 // List ...
 func (n *Variables) List(ctx context.Context, limit, offset int, orderBy, sort string, system bool, name string) (list []Variable, total int64, err error) {
 
-	q := n.Db.WithContext(ctx).Model(&Variable{}).
+	q := n.DB(ctx).Model(&Variable{}).
 		Preload("Tags").
 		Where("system = ?", system)
 
@@ -164,7 +145,7 @@ func (n *Variables) List(ctx context.Context, limit, offset int, orderBy, sort s
 // Search ...
 func (s *Variables) Search(ctx context.Context, query string, limit, offset int) (list []Variable, total int64, err error) {
 
-	q := s.Db.WithContext(ctx).Model(&Variable{}).
+	q := s.DB(ctx).Model(&Variable{}).
 		Where("name LIKE ?", "%"+query+"%")
 
 	if err = q.Count(&total).Error; err != nil {
@@ -186,7 +167,8 @@ func (s *Variables) Search(ctx context.Context, query string, limit, offset int)
 
 // DeleteTags ...
 func (n Variables) DeleteTags(ctx context.Context, name string) (err error) {
-	if err = n.Db.WithContext(ctx).Model(&Variable{Name: name}).Association("Tags").Clear(); err != nil {
+
+	if err = n.DB(ctx).Model(&Variable{Name: name}).Association("Tags").Clear(); err != nil {
 		err = errors.Wrap(apperr.ErrVariableDeleteTag, err.Error())
 	}
 	return

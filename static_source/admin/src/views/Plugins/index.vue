@@ -4,15 +4,17 @@ import {Table} from '@/components/Table'
 import {onMounted, onUnmounted, reactive, ref, watch} from 'vue'
 import {Pagination, TableColumn} from '@/types/table'
 import api from "@/api/api";
-import {ElButton, ElMessage} from 'element-plus'
-import {ApiPlugin} from "@/api/stub";
+import {ElButton, ElCol, ElMessage, ElRow, ElUpload, UploadProps} from 'element-plus'
+import {ApiBackup, ApiPlugin} from "@/api/stub";
 import {useRouter} from "vue-router";
 import {ContentWrap} from "@/components/ContentWrap";
 import {EventStateChange} from "@/api/types";
 import {UUID} from "uuid-generator-ts";
 import stream from "@/api/stream";
+import {useCache} from "@/hooks/web/useCache";
 
 const {push} = useRouter()
+const {wsCache} = useCache()
 const {t} = useI18n()
 
 interface TableObject {
@@ -150,10 +152,56 @@ const disable = async (plugin: ApiPlugin) => {
   });
 }
 
+const getUploadURL = () => {
+  let uri = import.meta.env.VITE_API_BASEPATH as string || window.location.origin;
+  const accessToken = wsCache.get("accessToken")
+  uri += '/v1/plugins/upload?access_token=' + accessToken;
+  const serverId = wsCache.get('serverId')
+  if (serverId) {
+    uri += '&server_id=' + serverId;
+  }
+  return uri;
+}
+
+const onSuccess: UploadProps['onSuccess'] = (file: ApiBackup, uploadFile) => {
+  ElMessage({
+    message: t('message.uploadSuccessfully'),
+    type: 'success',
+    duration: 2000
+  })
+}
+
+const onError: UploadProps['onError'] = (error, uploadFile, uploadFiles) => {
+  const body = JSON.parse(error.message)
+  const {message, code} = body.error;
+  ElMessage({
+    message: message,
+    type: 'error',
+    duration: 0
+  })
+}
+
 </script>
 
 <template>
   <ContentWrap>
+
+    <ElRow class=" mb-20px">
+      <ElUpload
+        class="upload-demo"
+        :action="getUploadURL()"
+        :multiple="false"
+        :on-success="onSuccess"
+        :on-error="onError"
+        :auto-upload="true"
+      >
+        <ElButton type="primary" plain>
+          <Icon icon="material-symbols:upload" class="mr-5px"/>
+          {{ $t('plugins.uploadPlugin') }}
+        </ElButton>
+      </ElUpload>
+    </ElRow>
+
     <Table
       :selection="false"
       v-model:pageSize="paginationObj.pageSize"

@@ -45,11 +45,7 @@ func NewMigrationImages(adaptors *adaptors.Adaptors, dir string) *MigrationImage
 	}
 }
 
-func (i *MigrationImages) Up(ctx context.Context, adaptors *adaptors.Adaptors) (err error) {
-
-	if adaptors != nil {
-		i.adaptors = adaptors
-	}
+func (i *MigrationImages) Up(ctx context.Context) (err error) {
 
 	imageList := map[string]*m.Image{
 		"button_v1_off": {
@@ -322,7 +318,7 @@ func (i *MigrationImages) Up(ctx context.Context, adaptors *adaptors.Adaptors) (
 		So(err, ShouldBeNil)
 
 		fullPath := common.GetFullPath(image.Image)
-		to := path.Join(path.Join(i.dir, fullPath), image.Image)
+		to := path.Join(i.dir, fullPath, image.Image)
 
 		//log.Infof("create dir %s", path.Join(i.dir, fullPath))
 		_ = os.MkdirAll(path.Join(i.dir, fullPath), os.ModePerm)

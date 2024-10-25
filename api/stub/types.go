@@ -2023,6 +2023,16 @@ type PluginServiceSearchPluginParams struct {
 	Limit  *SearchLimit  `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
+// PluginServiceUploadPluginMultipartBody defines parameters for PluginServiceUploadPlugin.
+type PluginServiceUploadPluginMultipartBody struct {
+	Filename *[]openapi_types.File `json:"filename,omitempty"`
+}
+
+// PluginServiceUploadPluginParams defines parameters for PluginServiceUploadPlugin.
+type PluginServiceUploadPluginParams struct {
+	Accept *AcceptJSON `json:"Accept,omitempty"`
+}
+
 // RoleServiceAddRoleParams defines parameters for RoleServiceAddRole.
 type RoleServiceAddRoleParams struct {
 	Accept *AcceptJSON `json:"Accept,omitempty"`
@@ -2458,6 +2468,9 @@ type AuthServicePasswordResetJSONRequestBody = ApiPasswordResetRequest
 
 // PluginServiceUpdatePluginSettingsJSONRequestBody defines body for PluginServiceUpdatePluginSettings for application/json ContentType.
 type PluginServiceUpdatePluginSettingsJSONRequestBody PluginServiceUpdatePluginSettingsJSONBody
+
+// PluginServiceUploadPluginMultipartRequestBody defines body for PluginServiceUploadPlugin for multipart/form-data ContentType.
+type PluginServiceUploadPluginMultipartRequestBody PluginServiceUploadPluginMultipartBody
 
 // RoleServiceAddRoleJSONRequestBody defines body for RoleServiceAddRole for application/json ContentType.
 type RoleServiceAddRoleJSONRequestBody = ApiNewRoleRequest

@@ -43,10 +43,8 @@ func NewMigrationRemoveTriggersPlugin(adaptors *adaptors.Adaptors) *MigrationRem
 	}
 }
 
-func (n *MigrationRemoveTriggersPlugin) Up(ctx context.Context, adaptors *adaptors.Adaptors) error {
-	if adaptors != nil {
-		n.adaptors = adaptors
-	}
+func (n *MigrationRemoveTriggersPlugin) Up(ctx context.Context) error {
+
 	err := n.adaptors.Plugin.CreateOrUpdate(ctx, &m.Plugin{
 		Name:     "state_change",
 		Version:  state_change.Version,

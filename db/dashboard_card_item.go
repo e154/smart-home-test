@@ -36,7 +36,7 @@ import (
 
 // DashboardCardItems ...
 type DashboardCardItems struct {
-	Db *gorm.DB
+	*Common
 }
 
 // DashboardCardItem ...
@@ -63,7 +63,7 @@ func (d *DashboardCardItem) TableName() string {
 
 // Add ...
 func (n DashboardCardItems) Add(ctx context.Context, item *DashboardCardItem) (id int64, err error) {
-	if err = n.Db.WithContext(ctx).Create(&item).Error; err != nil {
+	if err = n.DB(ctx).Create(&item).Error; err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
@@ -89,7 +89,7 @@ func (n DashboardCardItems) Add(ctx context.Context, item *DashboardCardItem) (i
 // GetById ...
 func (n DashboardCardItems) GetById(ctx context.Context, id int64) (item *DashboardCardItem, err error) {
 	item = &DashboardCardItem{Id: id}
-	if err = n.Db.WithContext(ctx).First(&item).Error; err != nil {
+	if err = n.DB(ctx).First(&item).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			err = errors.Wrap(apperr.ErrDashboardCardItemNotFound, fmt.Sprintf("with id \"%d\"", id))
 			return
@@ -112,7 +112,7 @@ func (n DashboardCardItems) Update(ctx context.Context, m *DashboardCardItem) (e
 		"hidden":            m.Hidden,
 	}
 
-	if err = n.Db.WithContext(ctx).Model(&DashboardCardItem{Id: m.Id}).Updates(q).Error; err != nil {
+	if err = n.DB(ctx).Model(&DashboardCardItem{Id: m.Id}).Updates(q).Error; err != nil {
 		err = errors.Wrap(apperr.ErrDashboardCardItemUpdate, err.Error())
 	}
 	return
@@ -120,7 +120,7 @@ func (n DashboardCardItems) Update(ctx context.Context, m *DashboardCardItem) (e
 
 // Delete ...
 func (n DashboardCardItems) Delete(ctx context.Context, id int64) (err error) {
-	if err = n.Db.WithContext(ctx).Delete(&DashboardCardItem{Id: id}).Error; err != nil {
+	if err = n.DB(ctx).Delete(&DashboardCardItem{Id: id}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrDashboardCardItemDelete, err.Error())
 	}
 	return
@@ -129,13 +129,13 @@ func (n DashboardCardItems) Delete(ctx context.Context, id int64) (err error) {
 // List ...
 func (n *DashboardCardItems) List(ctx context.Context, limit, offset int, orderBy, sort string) (list []*DashboardCardItem, total int64, err error) {
 
-	if err = n.Db.WithContext(ctx).Model(DashboardCardItem{}).Count(&total).Error; err != nil {
+	if err = n.DB(ctx).Model(DashboardCardItem{}).Count(&total).Error; err != nil {
 		err = errors.Wrap(apperr.ErrDashboardCardItemList, err.Error())
 		return
 	}
 
 	list = make([]*DashboardCardItem, 0)
-	q := n.Db.WithContext(ctx).Model(&DashboardCardItem{}).
+	q := n.DB(ctx).Model(&DashboardCardItem{}).
 		Limit(limit).
 		Offset(offset)
 

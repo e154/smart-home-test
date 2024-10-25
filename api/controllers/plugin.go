@@ -20,6 +20,7 @@ package controllers
 
 import (
 	"github.com/e154/smart-home/api/stub"
+	"github.com/e154/smart-home/common/apperr"
 	"github.com/labstack/echo/v4"
 
 	"github.com/e154/smart-home/api/dto"
@@ -121,4 +122,47 @@ func (c ControllerPlugin) PluginServiceGetPluginReadme(ctx echo.Context, name st
 	}
 
 	return ctx.HTMLBlob(200, html)
+}
+
+// RemovePlugin ...
+func (c ControllerPlugin) PluginServiceRemovePlugin(ctx echo.Context, name string) error {
+
+	if err := c.endpoint.Plugin.RemovePlugin(ctx.Request().Context(), name); err != nil {
+		return c.ERROR(ctx, err)
+	}
+
+	return c.HTTP200(ctx, "OK")
+}
+
+// Upload plugin ...
+func (c ControllerPlugin) PluginServiceUploadPlugin(ctx echo.Context, params stub.PluginServiceUploadPluginParams) error {
+
+	r := ctx.Request()
+
+	if err := r.ParseMultipartForm(maxMemory); err != nil {
+		log.Error(err.Error())
+	}
+
+	form := r.MultipartForm
+	if len(form.File) == 0 {
+		return c.ERROR(ctx, apperr.ErrInvalidRequest)
+	}
+
+	list, errs, err := c.endpoint.Plugin.Upload(r.Context(), form.File)
+	if err != nil {
+		return c.ERROR(ctx, err)
+	}
+
+	var resultPlugins = make([]interface{}, 0)
+
+	for _, file := range list {
+		resultPlugins = append(resultPlugins, map[string]string{
+			"name": file.Name,
+		})
+	}
+
+	return c.HTTP200(ctx, map[string]interface{}{
+		"files":  resultPlugins,
+		"errors": errs,
+	})
 }

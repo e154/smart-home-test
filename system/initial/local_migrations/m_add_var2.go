@@ -34,10 +34,7 @@ func NewMigrationAddVar2(adaptors *adaptors.Adaptors) *MigrationAddVar2 {
 	}
 }
 
-func (n *MigrationAddVar2) Up(ctx context.Context, adaptors *adaptors.Adaptors) error {
-	if adaptors != nil {
-		n.adaptors = adaptors
-	}
+func (n *MigrationAddVar2) Up(ctx context.Context) error {
 
 	AddVariableIfNotExist(n.adaptors, ctx, "certPublic", `-----BEGIN CERTIFICATE-----
 MIIC+TCCAeGgAwIBAgIQTGmiSrBW3EqxA38tD9oLzTANBgkqhkiG9w0BAQsFADAS

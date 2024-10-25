@@ -21,7 +21,6 @@ package endpoint
 import (
 	"context"
 	"fmt"
-
 	"github.com/pkg/errors"
 
 	"github.com/e154/smart-home/common"
@@ -148,13 +147,51 @@ func (n *TaskEndpoint) Update(ctx context.Context, task *m.UpdateTask) (result *
 		return
 	}
 
-	if result, err = n.adaptors.Task.GetById(ctx, task.Id); err != nil {
-		return
-	}
+	err = n.adaptors.Transaction.Do(ctx, func(ctx context.Context) error {
 
-	task.CreatedAt = result.CreatedAt
-	task.UpdatedAt = result.UpdatedAt
-	if err = n.adaptors.Task.Update(ctx, task); err != nil {
+		//triggers
+		if err = n.adaptors.Task.DeleteTrigger(ctx, task.Id); err != nil {
+			return err
+		}
+
+		//conditions
+		if err = n.adaptors.Task.DeleteCondition(ctx, task.Id); err != nil {
+			return err
+		}
+
+		//actions
+		if err = n.adaptors.Task.DeleteAction(ctx, task.Id); err != nil {
+			return err
+		}
+
+		newTask := &m.Task{
+			Id:          task.Id,
+			Name:        task.Name,
+			Description: task.Description,
+			Enabled:     task.Enabled,
+			Condition:   task.Condition,
+			AreaId:      task.AreaId,
+		}
+
+		//triggers
+		for _, id := range task.TriggerIds {
+			newTask.Triggers = append(newTask.Triggers, &m.Trigger{Id: id})
+		}
+
+		//conditions
+		for _, id := range task.ConditionIds {
+			newTask.Conditions = append(newTask.Conditions, &m.Condition{Id: id})
+		}
+
+		//actions
+		for _, id := range task.ActionIds {
+			newTask.Actions = append(newTask.Actions, &m.Action{Id: id})
+		}
+
+		return n.adaptors.Task.Update(ctx, newTask)
+	})
+
+	if err != nil {
 		return
 	}
 
@@ -192,7 +229,7 @@ func (n *TaskEndpoint) Delete(ctx context.Context, id int64) (err error) {
 		Id: id,
 	})
 
-	log.Infof("task id %d was deleted", id)
+	log.Infof("task id:(%d) was deleted", id)
 
 	return
 }

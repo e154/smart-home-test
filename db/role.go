@@ -32,7 +32,7 @@ import (
 
 // Roles ...
 type Roles struct {
-	Db *gorm.DB
+	*Common
 }
 
 // Role ...
@@ -54,7 +54,7 @@ func (m *Role) TableName() string {
 
 // Add ...
 func (n Roles) Add(ctx context.Context, role *Role) (err error) {
-	if err = n.Db.WithContext(ctx).Create(&role).Error; err != nil {
+	if err = n.DB(ctx).Create(&role).Error; err != nil {
 		err = errors.Wrap(apperr.ErrRoleAdd, err.Error())
 		return
 	}
@@ -63,9 +63,8 @@ func (n Roles) Add(ctx context.Context, role *Role) (err error) {
 
 // GetByName ...
 func (n Roles) GetByName(ctx context.Context, name string) (role *Role, err error) {
-
 	role = &Role{Name: name}
-	err = n.Db.WithContext(ctx).First(&role).Error
+	err = n.DB(ctx).First(&role).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			err = errors.Wrap(apperr.ErrRoleNotFound, fmt.Sprintf("name \"%s\"", name))
@@ -82,7 +81,7 @@ func (n Roles) GetByName(ctx context.Context, name string) (role *Role, err erro
 
 // Update ...
 func (n Roles) Update(ctx context.Context, m *Role) (err error) {
-	err = n.Db.WithContext(ctx).Model(&Role{Name: m.Name}).Updates(map[string]interface{}{
+	err = n.DB(ctx).Model(&Role{Name: m.Name}).Updates(map[string]interface{}{
 		"description": m.Description,
 		"parent":      m.RoleName,
 	}).Error
@@ -95,7 +94,7 @@ func (n Roles) Update(ctx context.Context, m *Role) (err error) {
 
 // Delete ...
 func (n Roles) Delete(ctx context.Context, name string) (err error) {
-	if err = n.Db.WithContext(ctx).Delete(&Role{Name: name}).Error; err != nil {
+	if err = n.DB(ctx).Delete(&Role{Name: name}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrRoleDelete, err.Error())
 	}
 	return
@@ -104,13 +103,13 @@ func (n Roles) Delete(ctx context.Context, name string) (err error) {
 // List ...
 func (n *Roles) List(ctx context.Context, limit, offset int, orderBy, sort string) (list []*Role, total int64, err error) {
 
-	if err = n.Db.WithContext(ctx).Model(Role{}).Count(&total).Error; err != nil {
+	if err = n.DB(ctx).Model(Role{}).Count(&total).Error; err != nil {
 		err = errors.Wrap(apperr.ErrRoleList, err.Error())
 		return
 	}
 
 	list = make([]*Role, 0)
-	err = n.Db.WithContext(ctx).
+	err = n.DB(ctx).
 		Limit(limit).
 		Offset(offset).
 		Order(fmt.Sprintf("%s %s", sort, orderBy)).
@@ -132,7 +131,7 @@ func (n *Roles) List(ctx context.Context, limit, offset int, orderBy, sort strin
 // Search ...
 func (n *Roles) Search(ctx context.Context, query string, limit, offset int) (list []*Role, total int64, err error) {
 
-	q := n.Db.WithContext(ctx).Model(&Role{}).
+	q := n.DB(ctx).Model(&Role{}).
 		Where("name LIKE ?", "%"+query+"%")
 
 	if err = q.Count(&total).Error; err != nil {
@@ -159,7 +158,7 @@ func (n *Roles) RelData(ctx context.Context, role *Role) (err error) {
 	// get parent
 	if role.RoleName.Valid {
 		role.Role = &Role{}
-		err = n.Db.WithContext(ctx).Model(role).
+		err = n.DB(ctx).Model(role).
 			Where("name = ?", role.RoleName.String).
 			Find(&role.Role).
 			Error
@@ -170,7 +169,7 @@ func (n *Roles) RelData(ctx context.Context, role *Role) (err error) {
 
 	// get children
 	role.Children = make([]*Role, 0)
-	err = n.Db.WithContext(ctx).Model(role).
+	err = n.DB(ctx).Model(role).
 		Where("parent = ?", role.Name).
 		Find(&role.Children).
 		Error

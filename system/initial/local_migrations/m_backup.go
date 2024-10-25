@@ -36,10 +36,7 @@ func NewMigrationBackup(adaptors *adaptors.Adaptors) *MigrationBackup {
 	}
 }
 
-func (n *MigrationBackup) Up(ctx context.Context, adaptors *adaptors.Adaptors) error {
-	if adaptors != nil {
-		n.adaptors = adaptors
-	}
+func (n *MigrationBackup) Up(ctx context.Context) error {
 
 	err := AddVariableIfNotExist(n.adaptors, ctx, "createBackupAt", "0 0 0 * * *")
 	So(err, ShouldBeNil)

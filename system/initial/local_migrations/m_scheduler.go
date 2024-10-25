@@ -35,10 +35,7 @@ func NewMigrationScheduler(adaptors *adaptors.Adaptors) *MigrationScheduler {
 	}
 }
 
-func (n *MigrationScheduler) Up(ctx context.Context, adaptors *adaptors.Adaptors) error {
-	if adaptors != nil {
-		n.adaptors = adaptors
-	}
+func (n *MigrationScheduler) Up(ctx context.Context) error {
 
 	err := AddVariableIfNotExist(n.adaptors, ctx, "clearMetricsDays", "60")
 	So(err, ShouldBeNil)

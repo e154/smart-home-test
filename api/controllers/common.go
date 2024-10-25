@@ -263,7 +263,8 @@ func (c ControllerCommon) ERROR(ctx echo.Context, err error) error {
 		return c.HTTP400(ctx, err)
 	case errors.Is(err, apperr.ErrBadJSONRequest):
 		return c.HTTP400(ctx, err)
-	case errors.Is(err, apperr.ErrAccessDenied):
+	case errors.Is(err, apperr.ErrAccessDenied),
+		errors.Is(err, apperr.ErrUnauthorized):
 		return c.HTTP401(ctx, err)
 	case errors.Is(err, apperr.ErrAccessForbidden):
 		return c.HTTP403(ctx, err)

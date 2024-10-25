@@ -37,10 +37,7 @@ func NewMigrationSpeedtest(adaptors *adaptors.Adaptors) *MigrationSpeedtest {
 	}
 }
 
-func (n *MigrationSpeedtest) Up(ctx context.Context, adaptors *adaptors.Adaptors) error {
-	if adaptors != nil {
-		n.adaptors = adaptors
-	}
+func (n *MigrationSpeedtest) Up(ctx context.Context) error {
 
 	return n.addPlugin(ctx, "speedtest", true, false, true, speedtest.Version)
 }

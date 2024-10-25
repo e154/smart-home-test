@@ -36,7 +36,7 @@ import (
 
 // EntityActions ...
 type EntityActions struct {
-	Db *gorm.DB
+	*Common
 }
 
 // EntityAction ...
@@ -63,7 +63,7 @@ func (d *EntityAction) TableName() string {
 
 // Add ...
 func (n EntityActions) Add(ctx context.Context, v *EntityAction) (id int64, err error) {
-	if err = n.Db.WithContext(ctx).Create(&v).Error; err != nil {
+	if err = n.DB(ctx).Create(&v).Error; err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
@@ -86,7 +86,7 @@ func (n EntityActions) Add(ctx context.Context, v *EntityAction) (id int64, err 
 // GetById ...
 func (n EntityActions) GetById(ctx context.Context, id int64) (v *EntityAction, err error) {
 	v = &EntityAction{Id: id}
-	if err = n.Db.WithContext(ctx).First(&v).Error; err != nil {
+	if err = n.DB(ctx).First(&v).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			err = errors.Wrap(apperr.ErrEntityActionNotFound, fmt.Sprintf("id \"%d\"", id))
 			return
@@ -98,7 +98,7 @@ func (n EntityActions) GetById(ctx context.Context, id int64) (v *EntityAction, 
 
 // Update ...
 func (n EntityActions) Update(ctx context.Context, m *EntityAction) (err error) {
-	err = n.Db.WithContext(ctx).Model(&EntityAction{Id: m.Id}).Updates(map[string]interface{}{
+	err = n.DB(ctx).Model(&EntityAction{Id: m.Id}).Updates(map[string]interface{}{
 		"name":        m.Name,
 		"description": m.Description,
 		"icon":        m.Icon,
@@ -128,7 +128,7 @@ func (n EntityActions) Update(ctx context.Context, m *EntityAction) (err error) 
 
 // DeleteByEntityId ...
 func (n EntityActions) DeleteByEntityId(ctx context.Context, deviceId common.EntityId) (err error) {
-	if err = n.Db.WithContext(ctx).Delete(&EntityAction{}, "entity_id = ?", deviceId).Error; err != nil {
+	if err = n.DB(ctx).Delete(&EntityAction{}, "entity_id = ?", deviceId).Error; err != nil {
 		err = errors.Wrap(apperr.ErrEntityActionDelete, err.Error())
 	}
 	return
@@ -137,13 +137,13 @@ func (n EntityActions) DeleteByEntityId(ctx context.Context, deviceId common.Ent
 // List ...
 func (n *EntityActions) List(ctx context.Context, limit, offset int, orderBy, sort string) (list []*EntityAction, total int64, err error) {
 
-	if err = n.Db.WithContext(ctx).Model(EntityAction{}).Count(&total).Error; err != nil {
+	if err = n.DB(ctx).Model(EntityAction{}).Count(&total).Error; err != nil {
 		err = errors.Wrap(apperr.ErrEntityActionList, err.Error())
 		return
 	}
 
 	list = make([]*EntityAction, 0)
-	err = n.Db.WithContext(ctx).
+	err = n.DB(ctx).
 		Limit(limit).
 		Offset(offset).
 		Order(fmt.Sprintf("%s %s", sort, orderBy)).
@@ -158,7 +158,7 @@ func (n *EntityActions) List(ctx context.Context, limit, offset int, orderBy, so
 
 // AddMultiple ...
 func (n *EntityActions) AddMultiple(ctx context.Context, actions []*EntityAction) (err error) {
-	if err = n.Db.WithContext(ctx).Create(&actions).Error; err != nil {
+	if err = n.DB(ctx).Create(&actions).Error; err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {

@@ -32,7 +32,7 @@ import (
 
 // Logs ...
 type Logs struct {
-	Db *gorm.DB
+	*Common
 }
 
 // Log ...
@@ -58,7 +58,7 @@ func (m *Log) TableName() string {
 
 // Add ...
 func (n Logs) Add(ctx context.Context, v *Log) (id int64, err error) {
-	if err = n.Db.WithContext(ctx).Create(&v).Error; err != nil {
+	if err = n.DB(ctx).Create(&v).Error; err != nil {
 		err = errors.Wrap(apperr.ErrLogAdd, err.Error())
 		return
 	}
@@ -69,7 +69,7 @@ func (n Logs) Add(ctx context.Context, v *Log) (id int64, err error) {
 // GetById ...
 func (n Logs) GetById(ctx context.Context, id int64) (v *Log, err error) {
 	v = &Log{Id: id}
-	if err = n.Db.WithContext(ctx).First(&v).Error; err != nil {
+	if err = n.DB(ctx).First(&v).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			err = errors.Wrap(apperr.ErrLogNotFound, fmt.Sprintf("id \"%d\"", id))
 			return
@@ -81,7 +81,7 @@ func (n Logs) GetById(ctx context.Context, id int64) (v *Log, err error) {
 
 // Delete ...
 func (n Logs) Delete(ctx context.Context, mapId int64) (err error) {
-	if err = n.Db.WithContext(ctx).Delete(&Log{Id: mapId}).Error; err != nil {
+	if err = n.DB(ctx).Delete(&Log{Id: mapId}).Error; err != nil {
 		err = errors.Wrap(apperr.ErrLogDelete, err.Error())
 	}
 	return
@@ -90,7 +90,7 @@ func (n Logs) Delete(ctx context.Context, mapId int64) (err error) {
 // List ...
 func (n *Logs) List(ctx context.Context, limit, offset int, orderBy, sort string, queryObj *LogQuery) (list []*Log, total int64, err error) {
 
-	q := n.Db.WithContext(ctx).Model(Log{})
+	q := n.DB(ctx).Model(Log{})
 
 	if queryObj != nil {
 		if queryObj.StartDate != nil {
@@ -126,7 +126,7 @@ func (n *Logs) List(ctx context.Context, limit, offset int, orderBy, sort string
 // Search ...
 func (n *Logs) Search(ctx context.Context, query string, limit, offset int) (list []*Log, total int64, err error) {
 
-	q := n.Db.WithContext(ctx).Model(&Log{}).
+	q := n.DB(ctx).Model(&Log{}).
 		Where("body LIKE ?", "%"+query+"%")
 
 	if err = q.Count(&total).Error; err != nil {
@@ -151,11 +151,11 @@ func (n *Logs) Search(ctx context.Context, query string, limit, offset int) (lis
 func (n *Logs) DeleteOldest(ctx context.Context, days int) (err error) {
 
 	log := &Log{}
-	if err = n.Db.WithContext(ctx).Last(&log).Error; err != nil {
+	if err = n.DB(ctx).Last(&log).Error; err != nil {
 		err = errors.Wrap(apperr.ErrLogDelete, err.Error())
 		return
 	}
-	err = n.Db.WithContext(ctx).Delete(&Log{},
+	err = n.DB(ctx).Delete(&Log{},
 		fmt.Sprintf(`created_at < CAST('%s' AS DATE) - interval '%d days'`,
 			log.CreatedAt.UTC().Format("2006-01-02 15:04:05"), days)).Error
 	if err != nil {
@@ -166,7 +166,7 @@ func (n *Logs) DeleteOldest(ctx context.Context, days int) (err error) {
 
 // AddMultiple ...
 func (n *Logs) AddMultiple(ctx context.Context, logs []*Log) (err error) {
-	if err = n.Db.WithContext(ctx).Create(&logs).Error; err != nil {
+	if err = n.DB(ctx).Create(&logs).Error; err != nil {
 		err = errors.Wrap(apperr.ErrLogAdd, err.Error())
 	}
 	return

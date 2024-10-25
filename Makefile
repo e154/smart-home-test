@@ -232,35 +232,6 @@ docs_deploy:
 	git push -q upstream HEAD:gh-pages
 	echo -e "Done documentation deploy.\n"
 
-#docker_image_linux_x86:
-#	echo ${ROOT}/${EXEC}-linux-x86
-#	cd ${ROOT}/${EXEC}-linux-x86 && ls -ll && docker build --platform linux/386 -f ${ROOT}/bin/docker/Dockerfile -t ${DOCKER_ACCOUNT}/${IMAGE}-x86:${RELEASE_VERSION} .
-#
-#docker_image_linux_amd64:
-#	echo ${ROOT}/${EXEC}-linux-amd64
-#	cd ${ROOT}/${EXEC}-linux-amd64 && ls -ll && docker build --platform linux/amd64 -f ${ROOT}/bin/docker/Dockerfile -t ${DOCKER_ACCOUNT}/${IMAGE}-amd64:${RELEASE_VERSION} .
-#
-#docker_image_linux_armv7l:
-#	echo ${ROOT}/${EXEC}-linux-arm-7
-#	cd ${ROOT}/${EXEC}-linux-arm-7 && ls -ll && docker build --platform linux/arm/v7 -f ${ROOT}/bin/docker/Dockerfile -t ${DOCKER_ACCOUNT}/${IMAGE}-arm-7:${RELEASE_VERSION} .
-#
-#docker_image_linux_arm64:
-#	echo ${ROOT}/${EXEC}-linux-arm64
-#	cd ${ROOT}/${EXEC}-linux-arm64 && ls -ll && docker build --platform linux/arm64 -f ${ROOT}/bin/docker/Dockerfile -t ${DOCKER_ACCOUNT}/${IMAGE}-arm64:${RELEASE_VERSION} .
-#
-#docker_image_upload:
-#	echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
-#	docker push ${DOCKER_ACCOUNT}/${IMAGE}-x86:${RELEASE_VERSION}
-#	docker push ${DOCKER_ACCOUNT}/${IMAGE}-amd64:${RELEASE_VERSION}
-#	docker push ${DOCKER_ACCOUNT}/${IMAGE}-arm-7:${RELEASE_VERSION}
-#	docker push ${DOCKER_ACCOUNT}/${IMAGE}-arm64:${RELEASE_VERSION}
-#	docker manifest create --amend ${DOCKER_ACCOUNT}/${IMAGE}:${RELEASE_VERSION} \
-#	${DOCKER_ACCOUNT}/${IMAGE}-x86:${RELEASE_VERSION} \
-#	${DOCKER_ACCOUNT}/${IMAGE}-amd64:${RELEASE_VERSION} \
-#	${DOCKER_ACCOUNT}/${IMAGE}-arm-7:${RELEASE_VERSION} \
-#	${DOCKER_ACCOUNT}/${IMAGE}-arm64:${RELEASE_VERSION}
-#	docker manifest push ${DOCKER_ACCOUNT}/${IMAGE}:${RELEASE_VERSION}
-
 clean:
 	@echo MARK: clean
 	rm -rf ${ROOT}/${EXEC}-linux-x86

@@ -19,6 +19,7 @@
 package container
 
 import (
+	systemMqtt "github.com/e154/smart-home/internal/system/mqtt"
 	"github.com/e154/smart-home/pkg/mqtt"
 )
 
@@ -56,7 +57,7 @@ func (m Mqtt) NewClient(name string) mqtt.MqttCli {
 func (m Mqtt) RemoveClient(name string) {}
 
 // Admin ...
-func (m Mqtt) Admin() mqtt.Admin {
+func (m Mqtt) Admin() systemMqtt.Admin {
 	return nil
 }
 

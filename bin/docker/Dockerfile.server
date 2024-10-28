@@ -19,7 +19,7 @@ ENV GOARCH=${TARGETARCH}
 WORKDIR /app/
 ADD . .
 
-RUN set -Eeux && \
+RUN set -ex && \
   go mod download && \
   go mod verify
 

@@ -254,8 +254,6 @@ typedoc:
 
 .PHONY: local_build # Build the container image
 local_build:
-	@docker buildx create --use --name=smart-home --node=smart-home && \
-	echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
 	docker --debug buildx build \
 		--build-arg GO_BUILD_LDFLAGS="${GO_BUILD_LDFLAGS}" \
 		--build-arg GO_BUILD_TAGS="${GO_BUILD_TAGS}" \

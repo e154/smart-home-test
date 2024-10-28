@@ -1,6 +1,6 @@
 module github.com/e154/smart-home
 
-go 1.23.2
+go 1.23.0
 
 require (
 	github.com/DrmagicE/gmqtt v0.5.0

@@ -20,7 +20,7 @@ BUILD_NUMBER_VALUE=$(shell echo ${TRAVIS_BUILD_NUMBER})
 
 IMAGE=smart-home-${EXEC}
 DOCKER_ACCOUNT=e154
-RELEASE_VERSION ?= test
+RELEASE_VERSION ?= v0.0.0
 DOCKER_IMAGE_VER=${DOCKER_ACCOUNT}/${IMAGE}:${RELEASE_VERSION}
 DOCKER_IMAGE_LATEST=${DOCKER_ACCOUNT}/${IMAGE}:latest
 
@@ -33,7 +33,7 @@ BUILD_NUMBER_VAR=${PROJECT}/version.BuildNumString
 DOCKER_IMAGE_VAR=${PROJECT}/version.DockerImageString
 
 GO_BUILD_LDFLAGS= -s -w -X ${VERSION_VAR}=${RELEASE_VERSION} -X ${REV_VAR}=${REV_VALUE} -X ${REV_URL_VAR}=${REV_URL_VALUE} -X ${GENERATED_VAR}=${GENERATED_VALUE} -X ${DEVELOPERS_VAR}=${DEVELOPERS_VALUE} -X ${BUILD_NUMBER_VAR}=${BUILD_NUMBER_VALUE} -X ${DOCKER_IMAGE_VAR}=${DOCKER_IMAGE_VER}
-GO_BUILD_FLAGS= -a -installsuffix cgo -v --ldflags '${GO_BUILD_LDFLAGS}'
+GO_BUILD_FLAGS= -a -installsuffix -trimpath -v --ldflags '${GO_BUILD_LDFLAGS}'
 GO_BUILD_ENV=CGO_ENABLED=0
 GO_BUILD_TAGS= -tags 'production'
 GO_TEST=test -tags test -v
@@ -179,9 +179,9 @@ build_public:
 
 server:
 	@echo "Building http server"
-	mkdir -p ${ROOT}/api/stub && \
-	oapi-codegen -generate server -package stub ${ROOT}/api/api.swagger.yaml > ${ROOT}/api/stub/server.go && \
-	oapi-codegen -generate types -package stub ${ROOT}/api/api.swagger.yaml > ${ROOT}/api/stub/types.go
+	mkdir -p ${ROOT}/internal/api/stub && \
+	oapi-codegen -generate server -package stub ${ROOT}/internal/api/api.swagger.yaml > ${ROOT}/internal/api/stub/server.go && \
+	oapi-codegen -generate types -package stub ${ROOT}/internal/api/api.swagger.yaml > ${ROOT}/internal/api/stub/types.go
 
 build_common_structure:
 	@echo MARK: create common structure
@@ -246,7 +246,7 @@ clean:
 
 front_client:
 	@echo MARK: generate front client lib
-	npx swagger-typescript-api@12.0.4 --axios -p ./api/api.swagger.yaml -o ./static_source/admin/src/api -n stub_new.ts
+	npx swagger-typescript-api@12.0.4 --axios -p ./internal/api/api.swagger.yaml -o ./static_source/admin/src/api -n stub_new.ts
 
 typedoc:
 	@echo MARK: typedoc

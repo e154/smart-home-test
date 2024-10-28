@@ -268,7 +268,8 @@ export default {
         actorStates: 'Actor States',
         actorSettings: 'Actor Settings',
         readme: 'Readme',
-        uploadPlugin: 'Upload plugin'
+        uploadPlugin: 'Upload plugin',
+        external: 'Uploaded'
     },
     areas: {
         id: 'ID',

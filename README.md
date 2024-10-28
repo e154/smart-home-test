@@ -6,11 +6,11 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![telegram group](https://img.shields.io/badge/telegram-group-blue)](https://t.me/SmartHomGo)
 
-|Branch      |Status   |
-|------------|---------|
-|master      | ![Build Status](https://github.com/e154/smart-home/actions/workflows/test.yml/badge.svg?branch=master)   |
-|dev         | ![Build Status](https://github.com/e154/smart-home/actions/workflows/test.yml/badge.svg?branch=develop)  |
-|docs        | ![Build Status](https://github.com/e154/smart-home/actions/workflows/docs.yml/badge.svg?branch=docs)     |
+| Branch | Status                                                                                                  |
+|--------|---------------------------------------------------------------------------------------------------------|
+| master | ![Build Status](https://github.com/e154/smart-home/actions/workflows/test.yml/badge.svg?branch=master)  |
+| dev    | ![Build Status](https://github.com/e154/smart-home/actions/workflows/test.yml/badge.svg?branch=develop) |
+| docs   | ![Build Status](https://github.com/e154/smart-home/actions/workflows/docs.yml/badge.svg?branch=docs)    |
 
 ### Overview
 
@@ -114,11 +114,13 @@ cp conf/config.dev.json conf/config.json
 Download the latest server version from [releases](https://github.com/e154/smart-home/releases)
 
 show help options
+
 ```bash
 ./server-linux-amd64 help
 ```
 
 run the server
+
 ```bash
 ./server-linux-amd64
 ```

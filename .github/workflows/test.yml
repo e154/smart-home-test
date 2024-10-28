@@ -75,7 +75,7 @@ jobs:
       matrix:
         go: [ 1.23 ]
     runs-on: ubuntu-latest
-    needs: [build_public]
+    needs: [ build_public ]
 
     services:
       postgres:
@@ -144,7 +144,7 @@ jobs:
       matrix:
         go: [ 1.23 ]
     runs-on: ubuntu-latest
-    needs: [build_public]
+    needs: [ build_public ]
     steps:
 
       - env:
@@ -183,7 +183,7 @@ jobs:
       matrix:
         go: [ 1.23 ]
     runs-on: ubuntu-latest
-    needs: [build_public]
+    needs: [ build_public ]
     steps:
 
       - env:
@@ -222,7 +222,7 @@ jobs:
       matrix:
         go: [ 1.23 ]
     runs-on: ubuntu-latest
-    needs: [build_public]
+    needs: [ build_public ]
     steps:
 
       - env:
@@ -261,7 +261,7 @@ jobs:
       matrix:
         go: [ 1.23 ]
     runs-on: ubuntu-latest
-    needs: [build_public]
+    needs: [ build_public ]
     steps:
 
       - env:
@@ -300,7 +300,7 @@ jobs:
       matrix:
         go: [ 1.23 ]
     runs-on: ubuntu-latest
-    needs: [build_public]
+    needs: [ build_public ]
     steps:
 
       - env:
@@ -339,7 +339,7 @@ jobs:
       matrix:
         go: [ 1.23 ]
     runs-on: ubuntu-latest
-    needs: [build_public]
+    needs: [ build_public ]
     steps:
 
       - env:
@@ -378,7 +378,7 @@ jobs:
       matrix:
         go: [ 1.23 ]
     runs-on: ubuntu-latest
-    needs: [build_public]
+    needs: [ build_public ]
     steps:
 
       - env:
@@ -414,7 +414,7 @@ jobs:
   docker_image_test:
     name: Test docker images
     runs-on: ubuntu-latest
-    needs: [build_public]
+    needs: [ build_public ]
     steps:
       - name: Set env
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
@@ -430,4 +430,4 @@ jobs:
           path: ./build
 
       - name: trying to test docker image
-        run: make build
+        run: make test_build

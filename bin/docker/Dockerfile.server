@@ -19,7 +19,7 @@ ENV GOARCH=${TARGETARCH}
 WORKDIR /app/
 ADD . .
 
-RUN set -Eeux && \
+RUN set -ex && \
   go mod download && \
   go mod verify
 
@@ -28,7 +28,7 @@ RUN go build -ldflags="${GO_BUILD_LDFLAGS}" ${GO_BUILD_TAGS} -o server .
 FROM --platform=$BUILDPLATFORM debian:12-slim
 
 LABEL org.opencontainers.image.title="Smart home" \
-  org.opencontainers.image.authors="Filippov Aleksei <af@e154.ru>" \
+  org.opencontainers.image.authors="Filippov Alex <af@e154.ru>" \
   org.opencontainers.image.description="Managing iot devices has become easier thanks to the smart-home automation software platform for managing iot devices with a graphical interface and javascript's scripts." \
   org.opencontainers.image.vendor="SMART HOME" \
   org.opencontainers.image.licenses="GPL-3.0-only" \

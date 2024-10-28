@@ -268,7 +268,8 @@ export default {
     actorStates: "Состояния актора",
     actorSettings: "Настройки актора",
     readme: 'Инфо',
-    uploadPlugin: 'Загрузить плагиг'
+    uploadPlugin: 'Загрузить плагиг',
+    external: 'Загружен'
   },
   areas: {
     id: "ID",

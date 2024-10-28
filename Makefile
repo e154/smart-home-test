@@ -262,6 +262,7 @@ local_build:
 		--output "type=docker,push=false" \
 		--tag $(DOCKER_IMAGE_VER) \
 		.
+
 .PHONY: test_build # Build the container image
 test_build:
 	@docker buildx create --use --name=smart-home --node=smart-home && \

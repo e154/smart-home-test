@@ -158,6 +158,9 @@ jobs:
           name: public_build
           path: ./build
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: trying to build artefacts
         id: build-artefacts
         run: make build_artefacts

@@ -61,7 +61,6 @@ target "image-all" {
 target "image-linux-arm64" {
   dockerfile = "Dockerfile.local"
   inherits = ["image"]
-  dockerfile = "Dockerfile.local"
   platforms = [
     "linux/arm64"
   ]

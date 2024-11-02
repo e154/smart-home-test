@@ -264,6 +264,8 @@ type PluginManifest struct {
 	Settings    map[string]interface{} `json:"settings"`
 	Actor       bool                   `json:"actor"`
 	Triggers    bool                   `json:"triggers"`
+	OS          string                 `json:"os"`
+	Arch        string                 `json:"arch"`
 }
 
 // EntityStateParams -> supervisor

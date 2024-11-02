@@ -32,6 +32,7 @@ import (
 	"path"
 	"path/filepath"
 	"plugin"
+	"runtime"
 
 	"github.com/e154/smart-home/internal/common"
 	"github.com/e154/smart-home/pkg/adaptors"
@@ -74,7 +75,7 @@ func (p *ExternalPlugins) uploadPlugin(ctx context.Context, reader *bufio.Reader
 	switch contentType {
 	case "application/x-gzip":
 	default:
-		log.Warnf("Unknown content-type from buffer, %s", contentType)
+		log.Warnf("Unknown plugin archive type: %s", contentType)
 	}
 
 	var manifest *plugins.PluginManifest
@@ -83,7 +84,15 @@ func (p *ExternalPlugins) uploadPlugin(ctx context.Context, reader *bufio.Reader
 	}
 
 	if manifest == nil {
-		return nil, fmt.Errorf("manifest file is nil")
+		return nil, fmt.Errorf("manifest file not found or corrupted")
+	}
+
+	if manifest.OS != runtime.GOOS {
+		return nil, fmt.Errorf("this plugin only for %s operating system, current operating system: %s", manifest.OS, runtime.GOOS)
+	}
+
+	if manifest.Arch != runtime.GOARCH {
+		return nil, fmt.Errorf("this plugin only for %s architecture, current architecture: %s", manifest.Arch, runtime.GOARCH)
 	}
 
 	if err = p.checkArchive(common.CopyBuffer(buffer), manifest); err != nil {
@@ -386,8 +395,9 @@ func (p *ExternalPlugins) loadGoPlugin(pluginName string) error {
 		return nil
 	}
 
-	log.Infof("load external library %s", pluginName)
-	plugin, err := plugin.Open(path.Join(pluginsDir, pluginName, "plugin.so"))
+	dir := path.Join(pluginsDir, pluginName, "plugin.so")
+	log.Infof("load external plugin %s", dir)
+	plugin, err := plugin.Open(dir)
 	if err != nil {
 		return err
 	}
@@ -415,22 +425,20 @@ func (p *ExternalPlugins) loadExternalPlugins() {
 		if info == nil {
 			return nil
 		}
-		if info.Name() == ".gitignore" || !info.IsDir() {
+		if info.IsDir() && info.Name() == "plugins" {
 			return nil
 		}
-		if info.Name()[0:1] == "." {
-			return nil
+		if info.IsDir() {
+			list = append(list, &plugins.PluginFileInfo{
+				Name:     info.Name(),
+				Size:     info.Size(),
+				FileMode: info.Mode(),
+				ModTime:  info.ModTime(),
+				IsDir:    info.IsDir(),
+			})
+
+			return filepath.SkipDir
 		}
-		if info.Name() == "plugins" {
-			return nil
-		}
-		list = append(list, &plugins.PluginFileInfo{
-			Name:     info.Name(),
-			Size:     info.Size(),
-			FileMode: info.Mode(),
-			ModTime:  info.ModTime(),
-			IsDir:    info.IsDir(),
-		})
 		return nil
 	})
 

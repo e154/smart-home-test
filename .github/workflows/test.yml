@@ -168,16 +168,20 @@ jobs:
 #      - name: trying to build artefacts
 #        id: build-artefacts
 #        run: make build_artefacts
+
+      - name: create .env
+        id: create-env
+        run: make create_env
+
       - name: trying to build artefacts
         uses: docker/bake-action@v5
         with:
           files: |
             ./docker-bake.hcl
             ${{ steps.meta.outputs.bake-file }}
-          targets: artifact-all
+          targets: artifact-darwin-arm64
           set: |
             *.cache-from=type=gha,scope=base
-          push: ${{ startsWith(github.ref, 'refs/tags/v') }}
 
 #  docker_image_test:
 #    name: Test docker images

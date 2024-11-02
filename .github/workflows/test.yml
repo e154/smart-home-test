@@ -158,6 +158,17 @@ jobs:
           name: public_build
           path: ./build
 
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.goxx-cache
+          key: ${{ runner.os }}-goxx-base-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-goxx-base-
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 

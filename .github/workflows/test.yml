@@ -173,21 +173,26 @@ jobs:
         id: create-env
         run: make create_env
 
+      - name: Configure environment
+        uses: c-py/action-dotenv-to-setenv@v2
+        with:
+          env-file: .env
+
       - name: trying to build artefacts
         uses: docker/bake-action@v5
         with:
           files: |
             ./docker-bake.hcl
             ${{ steps.meta.outputs.bake-file }}
-          targets: artifact-darwin-arm64
+          targets: artifact-linux-amd64
           set: |
             *.cache-from=type=gha,scope=base
 
       - uses: actions/upload-artifact@v4
-        id: upload-darwin-arm64
+        id: upload-linux-amd64
         with:
-          name: darwin_arm64
-          path: ./dist/darwin_arm64/server
+          name: linux_amd64
+          path: ./dist/linux_amd64
           retention-days: 1
 
 #  docker_image_test:

@@ -88,10 +88,10 @@ target "artifact-all" {
   ]
 }
 
-target "artifact-darwin-arm64" {
-  dockerfile = "Dockerfile.local"
+target "artifact-linux-amd64" {
+  dockerfile = "Dockerfile"
   inherits = ["artifact"]
   platforms = [
-   "darwin/arm64"
+   "linux/amd64"
   ]
 }

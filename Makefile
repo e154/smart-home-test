@@ -216,3 +216,15 @@ publish:
 create_env:
 	echo "RELEASE_VERSION=\"${RELEASE_VERSION}\"\nGO_BUILD_LDFLAGS=\"${GO_BUILD_LDFLAGS}\"" >> .env
 
+.PHONY: build_archive
+build_archive:
+	cd ${ROOT}/dist/linux_amd64 && ls -l && tar -zcf ${ROOT}/linux_amd64.tar.gz .
+	cd ${ROOT}/dist/linux_arm64 && ls -l && tar -zcf ${ROOT}/linux_arm64.tar.gz .
+	cd ${ROOT}/dist/linux_arm_v6 && ls -l && tar -zcf ${ROOT}/linux_arm_v6.tar.gz .
+	cd ${ROOT}/dist/linux_arm_v7 && ls -l && tar -zcf ${ROOT}/linux_arm_v7.tar.gz .
+	cd ${ROOT}/dist/linux_ppc64le && ls -l && tar -zcf ${ROOT}/linux_ppc64le.tar.gz .
+	cd ${ROOT}/dist/linux_riscv64 && ls -l && tar -zcf ${ROOT}/linux_riscv64.tar.gz .
+	cd ${ROOT}/dist/linux_s390x && ls -l && tar -zcf ${ROOT}/linux_s390x.tar.gz .
+	cd ${ROOT}/dist/windows_amd64 && ls -l && tar -zcf ${ROOT}/windows_amd64.tar.gz .
+	cd ${ROOT}/dist/windows_arm64 && ls -l && tar -zcf ${ROOT}/windows_arm64.tar.gz .
+

@@ -136,54 +136,15 @@ jobs:
         run: |
           tree -nh ./dist
 
-      - name: upload server linux amd64
-        uses: softprops/action-gh-release@v1
+      - name: upload builds
+        uses: softprops/action-gh-release@v2
         with:
-          files: ./dist/linux_amd64
+          files: |
+            ./dist/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: upload server linux arm64
-        uses: softprops/action-gh-release@v1
-        with:
-          files: ./dist/linux_arm64
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: upload server linux arm v6
-        uses: softprops/action-gh-release@v1
-        with:
-          files: ./dist/linux_arm_v6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: upload server linux arm v7
-        uses: softprops/action-gh-release@v1
-        with:
-          files: ./dist/linux_arm_v7
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: upload server linux ppc64le
-        uses: softprops/action-gh-release@v1
-        with:
-          files: ./dist/linux_ppc64le
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: upload server linux riscv64
-        uses: softprops/action-gh-release@v1
-        with:
-          files: ./dist/linux_riscv64
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: upload server linux s390x
-        uses: softprops/action-gh-release@v1
-        with:
-          files: ./dist/linux_s390x
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   docker_image_upload:
     name: Upload docker images

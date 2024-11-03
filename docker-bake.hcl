@@ -6,10 +6,6 @@ variable "GO_BUILD_LDFLAGS" {
   default = null
 }
 
-variable "GO_VERSION" {
-  default = null
-}
-
 target "goxx" {
   context = "./bin/docker"
 }
@@ -19,7 +15,6 @@ target "_commons" {
     goxx = "target:goxx"
   }
   args = {
-    GO_VERSION = GO_VERSION
     RELEASE_VERSION = RELEASE_VERSION
     GO_BUILD_LDFLAGS = "${GO_BUILD_LDFLAGS}"
   }

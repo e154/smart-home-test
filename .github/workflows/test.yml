@@ -189,10 +189,10 @@ jobs:
             *.cache-from=type=gha,scope=base
 
       - uses: actions/upload-artifact@v4
-        id: upload-linux-amd64
+        id: artifact-darwin-arm64
         with:
           name: linux_amd64
-          path: ./dist/linux_amd64
+          path: ./dist/darwin_arm64
           retention-days: 1
 
 #  docker_image_test:

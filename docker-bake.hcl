@@ -91,7 +91,17 @@ target "artifact-all" {
 target "artifact-linux-amd64" {
   dockerfile = "Dockerfile"
   inherits = ["artifact"]
+  output = ["./dist/linux_amd64"]
   platforms = [
    "linux/amd64"
+  ]
+}
+
+target "artifact-darwin-arm64" {
+  dockerfile = "Dockerfile.local"
+  inherits = ["artifact"]
+  output = ["./dist/darwin_arm64"]
+  platforms = [
+   "darwin/arm64"
   ]
 }

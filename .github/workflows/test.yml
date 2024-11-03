@@ -184,14 +184,14 @@ jobs:
           files: |
             ./docker-bake.hcl
             ${{ steps.meta.outputs.bake-file }}
-          targets: artifact-linux-amd64
+          targets: artifact-darwin-arm64
           set: |
             *.cache-from=type=gha,scope=base
 
       - uses: actions/upload-artifact@v4
-        id: artifact-darwin-arm64
+        id: upload-artefact
         with:
-          name: linux_amd64
+          name: darwin_amd64
           path: ./dist/darwin_arm64
           retention-days: 1
 

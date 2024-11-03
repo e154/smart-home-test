@@ -1,9 +1,13 @@
 variable "RELEASE_VERSION" {
-  default = ""
+  default = null
 }
 
 variable "GO_BUILD_LDFLAGS" {
-  default = ""
+  default = null
+}
+
+variable "GO_VERSION" {
+  default = null
 }
 
 target "goxx" {
@@ -15,8 +19,9 @@ target "_commons" {
     goxx = "target:goxx"
   }
   args = {
-    RELEASE_VERSION: "${RELEASE_VERSION}"
-    GO_BUILD_LDFLAGS: "${GO_BUILD_LDFLAGS}"
+    GO_VERSION = GO_VERSION
+    RELEASE_VERSION = RELEASE_VERSION
+    GO_BUILD_LDFLAGS = "${GO_BUILD_LDFLAGS}"
   }
 }
 

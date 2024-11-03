@@ -13,7 +13,6 @@ on:
 env:
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  PLATFORMS: linux/amd64,linux/arm64
 
 jobs:
   build_public:

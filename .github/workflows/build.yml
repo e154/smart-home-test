@@ -79,6 +79,13 @@ jobs:
   build_artefacts:
     name: Build artefacts
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go_version:
+          - 1.23.0
+        include:
+          - target: artifact-all
     needs: [ build_public ]
     steps:
       - name: Set env
@@ -98,14 +105,36 @@ jobs:
           name: public_build
           path: ./build
 
-      - name: Go mod tidy
-        run: |
-          echo -e "machine github.com\n  login ${{ secrets.GITHUBTOKEN }}" > ~/.netrc
-          make get_deps
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: create .env
+        id: create-env
+        run: make create_env
+
+      - name: Configure environment
+        uses: c-py/action-dotenv-to-setenv@v2
+        with:
+          env-file: .env
 
       - name: trying to build artefacts
-        id: build-artefacts
-        run: make build_artefacts
+        uses: docker/bake-action@v5
+        with:
+          files: |
+            ./docker-bake.hcl
+            ${{ steps.meta.outputs.bake-file }}
+          targets: ${{ matrix.target }}
+          set: |
+            *.cache-from=type=gha,scope=base
+            goxx.args.GO_VERSION=${{ matrix.go_version }}
+
+      - name: List artifacts
+        if: ${{ matrix.target == 'artifact-all' }}
+        run: |
+          tree -nh ./dist
 
       - name: upload server linux amd64
         uses: softprops/action-gh-release@v1
@@ -159,6 +188,13 @@ jobs:
   docker_image_upload:
     name: Upload docker images
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go_version:
+          - 1.23.0
+        include:
+          - target: image-all
     needs: [ build_public ]
     steps:
       - name: Set env
@@ -174,5 +210,36 @@ jobs:
           name: public_build
           path: ./build
 
-      - name: trying to upload docker image
-        run: make publish
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: create .env
+        id: create-env
+        run: make create_env
+
+      - name: Configure environment
+        uses: c-py/action-dotenv-to-setenv@v2
+        with:
+          env-file: .env
+
+      - name: Login to DockerHub
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: trying to build artefacts
+        uses: docker/bake-action@v5
+        with:
+          files: |
+            ./docker-bake.hcl
+            ${{ steps.meta.outputs.bake-file }}
+          targets: ${{ matrix.target }}
+          set: |
+            *.cache-from=type=gha,scope=base
+            goxx.args.GO_VERSION=${{ matrix.go_version }}
+          push: true

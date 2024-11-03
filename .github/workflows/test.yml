@@ -152,7 +152,6 @@ jobs:
         include:
           - target: artifact-all
           - go_version: 1.23.0
-            target: image
 
     needs: [ build_public ]
     steps:

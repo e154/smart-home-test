@@ -142,7 +142,7 @@ func (p *pluginManager) loadPlugin(ctx context.Context, name string, ext bool) (
 
 	if ext {
 		if err = p.ExternalPlugins.loadGoPlugin(name); err != nil {
-			err = errors.Wrap(apperr.ErrPluginUpload, err.Error())
+			err = errors.Wrap(apperr.ErrPluginLoadExternal, err.Error())
 			return
 		}
 	}
@@ -294,7 +294,7 @@ func (p *pluginManager) UploadPlugin(ctx context.Context, reader *bufio.Reader) 
 
 	item, ok := IsPluginRegistered(newPlugin.Name)
 	if !ok {
-		err = errors.Wrap(apperr.ErrPluginUpload, "plugin was uploaded but not registered")
+		err = errors.Wrap(apperr.ErrPluginUpload, "it looks like the plugin is loaded, but it didn't work to connect")
 		return
 	}
 

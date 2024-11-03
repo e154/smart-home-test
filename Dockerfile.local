@@ -1,43 +1,54 @@
-FROM --platform=$BUILDPLATFORM postgres:15 AS postgres
+# syntax=docker/dockerfile:1
 
-ARG BUILDPLATFORM
+FROM --platform=$BUILDPLATFORM crazymax/goxx:latest AS goxx
+FROM --platform=$BUILDPLATFORM crazymax/osxcross:11.3 AS osxcross
 
-FROM --platform=$BUILDPLATFORM golang:1.23.0 AS builder
+FROM goxx AS base
+ENV GO111MODULE=auto
+ENV CGO_ENABLED=1
+WORKDIR /src
 
-ARG BUILDPLATFORM
-ARG TARGETOS
-ARG TARGETARCH
-ARG GO_BUILD_LDFLAGS
-ARG GO_BUILD_TAGS
+FROM base AS vendored
+RUN --mount=type=bind,target=.,rw \
+  --mount=type=cache,target=/go/pkg/mod \
+  go mod tidy && go mod download
 
-RUN go version
-
-ENV CGO_ENABLED=0
-ENV GOOS=${TARGETOS}
-ENV GOARCH=${TARGETARCH}
-
-WORKDIR /app/
-ADD . .
-
-RUN set -ex && \
-  go mod download && \
-  go mod verify
-
-RUN go build -ldflags="${GO_BUILD_LDFLAGS}" ${GO_BUILD_TAGS} -o server .
-
-FROM --platform=$BUILDPLATFORM debian:12-slim
-
-LABEL org.opencontainers.image.title="Smart home" \
-  org.opencontainers.image.authors="Filippov Alex <af@e154.ru>" \
-  org.opencontainers.image.description="Managing iot devices has become easier thanks to the smart-home automation software platform for managing iot devices with a graphical interface and javascript's scripts." \
-  org.opencontainers.image.vendor="SMART HOME" \
-  org.opencontainers.image.licenses="GPL-3.0-only" \
-  com.docker.desktop.extension.api.version="${RELEASE_VERSION}" \
-  com.docker.desktop.extension.icon="https://raw.githubusercontent.com/e154/smart-home/refs/heads/master/static_source/admin/public/android-chrome-64x64.png"
-
-ARG BUILDPLATFORM
+FROM vendored AS build
+ARG TARGETPLATFORM
 ARG RELEASE_VERSION
+ARG GO_BUILD_LDFLAGS
+RUN --mount=type=cache,sharing=private,target=/var/cache/apt \
+  --mount=type=cache,sharing=private,target=/var/lib/apt/lists \
+  goxx-apt-get install -y binutils gcc g++ pkg-config
+RUN --mount=type=bind,source=.,rw \
+  --mount=from=osxcross,target=/osxcross,src=/osxcross,rw \
+  --mount=type=cache,target=/root/.cache \
+  --mount=type=cache,target=/go/pkg/mod <<EOT
+BUILDMODE=
+if [ "$(. goxx-env && echo $GOOS)" != "windows" ]; then
+  case "$(. goxx-env && echo $GOARCH)" in
+    mips*|ppc64)
+      # pie build mode is not supported on mips architectures
+      ;;
+    *)
+      BUILDMODE="-buildmode=pie"
+      ;;
+  esac
+fi
+LDFLAGS="$GO_BUILD_LDFLAGS -s -w"
+if [ "$(. goxx-env && echo $GOOS)" = "linux" ]; then
+  LDFLAGS="$LDFLAGS -extldflags -static"
+fi
+GO_BUILD_TAGS="-tags 'production'"
+goxx-go env
+goxx-go build -v -o /out/server -trimpath -ldflags "$LDFLAGS" $BUILDMODE $GO_BUILD_TAGS .
+EOT
 
+FROM scratch AS artifact
+COPY --from=build /out /
+
+FROM --platform=$BUILDPLATFORM postgres:15 AS postgres
+FROM --platform=$BUILDPLATFORM debian:12-slim
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libpq5 ca-certificates iputils-ping
 RUN update-ca-certificates
@@ -55,9 +66,9 @@ COPY LICENSE .
 COPY README.md .
 COPY CONTRIBUTING.md .
 
-COPY --from=builder /app/server .
+COPY --from=build /out/server .
 
-ENTRYPOINT ["/app/server"]
+ENTRYPOINT [ "/app/server" ]
 
 EXPOSE 3000
 EXPOSE 3001
@@ -118,4 +129,3 @@ ENV GATE_PROXY_SECRET_KEY=""
 VOLUME /app/snapshots
 VOLUME /app/data
 VOLUME /app/conf
-

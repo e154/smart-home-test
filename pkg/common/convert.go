@@ -36,19 +36,6 @@ func StringValue(v *string) string {
 	return ""
 }
 
-// Int ...
-func Int(v int) *int {
-	return &v
-}
-
-// IntValue ...
-func IntValue(v *int) int {
-	if v != nil {
-		return *v
-	}
-	return 0
-}
-
 // Int64 ...
 func Int64(v int64) *int64 {
 	return &v
@@ -92,23 +79,7 @@ func Bool(v bool) *bool {
 	return &v
 }
 
-// BoolValue ...
-func BoolValue(v *bool) bool {
-	if v != nil {
-		return *v
-	}
-	return false
-}
-
 // Float32 ...
 func Float32(v float32) *float32 {
 	return &v
-}
-
-// Float32Value ...
-func Float32Value(v *float32) float32 {
-	if v != nil {
-		return *v
-	}
-	return 0
 }

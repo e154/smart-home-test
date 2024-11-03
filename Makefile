@@ -214,5 +214,5 @@ publish:
 
 .PHONY: create_env
 create_env:
-	echo "RELEASE_VERSION=\"${RELEASE_VERSION}\"\r\nGO_BUILD_LDFLAGS=\"${GO_BUILD_LDFLAGS}\"" >> .env
+	echo "RELEASE_VERSION=\"${RELEASE_VERSION}\"\nGO_BUILD_LDFLAGS=\"${GO_BUILD_LDFLAGS}\"" >> .env
 

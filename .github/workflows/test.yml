@@ -140,7 +140,7 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-  build_artefacts:
+  build_artifacts:
     name: Build artefacts
     runs-on: ubuntu-latest
     strategy:

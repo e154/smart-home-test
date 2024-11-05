@@ -184,15 +184,15 @@ front_client:
 
 typedoc:
 	@echo MARK: typedoc
-	npx typedoc --tsconfig ./data/scripts/tsconfig.json --out ./api/typedoc ./data/scripts/global.d.ts
+	npx typedoc --tsconfig ./data/scripts/tsconfig.json --out ./internal/api/typedoc ./data/scripts/global.d.ts
 
 .PHONY: build_darwin_arm64
 build_darwin_arm64:
 	@echo MARK: build local artefact
 	RELEASE_VERSION=${RELEASE_VERSION} GO_BUILD_LDFLAGS=${GO_BUILD_LDFLAGS} docker buildx bake artifact-darwin-arm64
 
-.PHONY: build_artefacts
-build_artefacts:
+.PHONY: build_artifacts
+build_artifacts:
 	@echo MARK: build all artefacts
 	RELEASE_VERSION=${RELEASE_VERSION} GO_BUILD_LDFLAGS=${GO_BUILD_LDFLAGS} docker buildx bake artifact-all
 
@@ -228,3 +228,7 @@ build_archive:
 	cd ${ROOT}/dist/windows_amd64 && ls -l && tar -zcf ${ROOT}/windows_amd64.tar.gz .
 	cd ${ROOT}/dist/windows_arm64 && ls -l && tar -zcf ${ROOT}/windows_arm64.tar.gz .
 
+.PHONY: build_artifact_public
+build_artifact_public:
+	@echo MARK: local build
+	docker buildx bake artifact-public

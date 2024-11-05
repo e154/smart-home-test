@@ -21,9 +21,7 @@ package container
 import (
 	"github.com/e154/bus"
 	"github.com/e154/smart-home/internal/adaptors"
-	"github.com/e154/smart-home/internal/common/web"
 	"github.com/e154/smart-home/internal/endpoint"
-	"github.com/e154/smart-home/internal/system/access_list"
 	"github.com/e154/smart-home/internal/system/automation"
 	"github.com/e154/smart-home/internal/system/backup"
 	"github.com/e154/smart-home/internal/system/gate/client"
@@ -35,11 +33,14 @@ import (
 	"github.com/e154/smart-home/internal/system/mqtt"
 	"github.com/e154/smart-home/internal/system/mqtt_authenticator"
 	"github.com/e154/smart-home/internal/system/orm"
+	"github.com/e154/smart-home/internal/system/rbac"
+	"github.com/e154/smart-home/internal/system/rbac/access_list"
 	"github.com/e154/smart-home/internal/system/scheduler"
 	"github.com/e154/smart-home/internal/system/scripts"
 	"github.com/e154/smart-home/internal/system/storage"
 	"github.com/e154/smart-home/internal/system/stream"
 	"github.com/e154/smart-home/internal/system/supervisor"
+	"github.com/e154/smart-home/internal/system/web"
 	"github.com/e154/smart-home/internal/system/zigbee2mqtt"
 	"go.uber.org/dig"
 	"go.uber.org/fx"
@@ -56,6 +57,7 @@ func BuildContainer() (container *dig.Container) {
 	_ = container.Provide(NewMigrationsConfig)
 	_ = container.Provide(migrations.NewMigrations)
 	_ = container.Provide(adaptors.NewAdaptors)
+	_ = container.Provide(rbac.NewAuthenticator)
 	_ = container.Provide(scheduler.NewScheduler)
 	_ = container.Provide(scripts.NewScriptService)
 	_ = container.Provide(initial.NewInitial)

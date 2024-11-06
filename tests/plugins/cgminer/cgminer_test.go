@@ -385,8 +385,6 @@ entityAction = (entityId, actionName)->
 
 		})
 		if err != nil {
-
-			fmt.Println("------")
 			fmt.Println(err.Error())
 		}
 	})

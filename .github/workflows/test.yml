@@ -71,76 +71,76 @@ jobs:
       - name: Output artifact ID
         run: echo 'Artifact ID is ${{ steps.artifact-upload-step.outputs.artifact-id }}'
 
-#  run_tests:
-#    name: Run linux test
-#    strategy:
-#      matrix:
-#        go: [ 1.23 ]
-#    runs-on: ubuntu-latest
-#    needs: [ build_public ]
-#
-#    services:
-#      postgres:
-#        image: postgis/postgis:11-3.3
-#        env:
-#          POSTGRES_DB: postgres
-#          POSTGRES_PASSWORD: postgres
-#          POSTGRES_USER: postgres
-#        options: >-
-#          --health-cmd pg_isready
-#          --health-interval 10s
-#          --health-timeout 5s
-#          --health-retries 5
-#        ports:
-#          - 5432:5432
-#
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v4
-#
-#      - uses: actions/download-artifact@v4
-#        with:
-#          name: public_build
-#          path: ./build
-#
-#      - name: Install PostgreSQL client
-#        run: |
-#          sudo apt-get update
-#          sudo apt-get install --yes postgresql-client
-#          sudo apt-get -y install libpq-dev
-#
-#      - name: set up postgres
-#        run: |
-#          export PGPASSWORD=postgres && psql -h localhost -p 5432 -c 'CREATE DATABASE smart_home_test;' -U postgres
-#          export PGPASSWORD=postgres && psql -h localhost -p 5432 -c "CREATE USER smart_home WITH PASSWORD 'smart_home';" -U postgres
-#          export PGPASSWORD=postgres && psql -h localhost -p 5432 -c "ALTER ROLE smart_home SUPERUSER;" -U postgres
-#          export PGPASSWORD=postgres && psql -h localhost -p 5432 -c "CREATE EXTENSION pgcrypto;" -U postgres smart_home_test;
-#          export PGPASSWORD=postgres && psql -h localhost -p 5432 -c "CREATE EXTENSION Postgis;" -U postgres smart_home_test;
-#
-#      - name: Install Go ${{ matrix.go }}
-#        uses: actions/setup-go@v2
-#        with:
-#          go-version: ${{ matrix.go }}
-#
-#      - name: Prepary deps
-#        run: |
-#          echo -e "machine github.com\n  login ${{ secrets.GITHUBTOKEN }}" > ~/.netrc
-#          make get_deps
-#
-#      - name: Unit tests
-#        id: test-code
-#        run: make test
-#
-#      - name: System tests
-#        id: system-code
-#        run: make test_system
-#
-#      - name: Upload coverage reports to Codecov
-#        uses: codecov/codecov-action@v3
-#        env:
-#          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  run_tests:
+    name: Run linux test
+    strategy:
+      matrix:
+        go: [ 1.23 ]
+    runs-on: ubuntu-latest
+    needs: [ build_public ]
 
-  build_artefacts:
+    services:
+      postgres:
+        image: postgis/postgis:11-3.3
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: public_build
+          path: ./build
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+          sudo apt-get -y install libpq-dev
+
+      - name: set up postgres
+        run: |
+          export PGPASSWORD=postgres && psql -h localhost -p 5432 -c 'CREATE DATABASE smart_home_test;' -U postgres
+          export PGPASSWORD=postgres && psql -h localhost -p 5432 -c "CREATE USER smart_home WITH PASSWORD 'smart_home';" -U postgres
+          export PGPASSWORD=postgres && psql -h localhost -p 5432 -c "ALTER ROLE smart_home SUPERUSER;" -U postgres
+          export PGPASSWORD=postgres && psql -h localhost -p 5432 -c "CREATE EXTENSION pgcrypto;" -U postgres smart_home_test;
+          export PGPASSWORD=postgres && psql -h localhost -p 5432 -c "CREATE EXTENSION Postgis;" -U postgres smart_home_test;
+
+      - name: Install Go ${{ matrix.go }}
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go }}
+
+      - name: Prepary deps
+        run: |
+          echo -e "machine github.com\n  login ${{ secrets.GITHUBTOKEN }}" > ~/.netrc
+          make get_deps
+
+      - name: Unit tests
+        id: test-code
+        run: make test
+
+      - name: System tests
+        id: system-code
+        run: make test_system
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  build_artifacts:
     name: Build artefacts
     runs-on: ubuntu-latest
     strategy:

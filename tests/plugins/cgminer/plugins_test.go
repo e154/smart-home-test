@@ -52,9 +52,13 @@ func TestMain(m *testing.M) {
 		migrations *migrations.Migrations,
 	) {
 
+		fmt.Println("----")
+
 		migrations.Purge()
 
 		time.Sleep(time.Millisecond * 500)
+
+		fmt.Println("----2")
 
 		os.Exit(m.Run())
 	})

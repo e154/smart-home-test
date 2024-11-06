@@ -1,9 +1,9 @@
 variable "RELEASE_VERSION" {
-  default = null
+  default = ""
 }
 
 variable "GO_BUILD_LDFLAGS" {
-  default = null
+  default = ""
 }
 
 target "goxx" {
@@ -15,8 +15,8 @@ target "_commons" {
     goxx = "target:goxx"
   }
   args = {
-    RELEASE_VERSION = RELEASE_VERSION
-    GO_BUILD_LDFLAGS = "${GO_BUILD_LDFLAGS}"
+    RELEASE_VERSION: "${RELEASE_VERSION}"
+    GO_BUILD_LDFLAGS: "${GO_BUILD_LDFLAGS}"
   }
 }
 
@@ -39,7 +39,7 @@ target "image" {
 }
 
 target "image-local" {
-  dockerfile = "Dockerfile.local"
+  dockerfile = "Dockerfile"
   inherits = ["image"]
   output = ["type=docker"]
 }
@@ -59,7 +59,7 @@ target "image-all" {
 }
 
 target "image-linux-arm64" {
-  dockerfile = "Dockerfile.local"
+  dockerfile = "Dockerfile"
   inherits = ["image"]
   platforms = [
     "linux/arm64"
@@ -88,20 +88,15 @@ target "artifact-all" {
   ]
 }
 
-target "artifact-linux-amd64" {
+target "artifact-darwin-arm64" {
   dockerfile = "Dockerfile"
   inherits = ["artifact"]
-  output = ["./dist/linux_amd64"]
-  platforms = [
-   "linux/amd64"
-  ]
-}
-
-target "artifact-darwin-arm64" {
-  dockerfile = "Dockerfile.local"
-  inherits = ["artifact"]
-  output = ["./dist/darwin_arm64"]
   platforms = [
    "darwin/arm64"
   ]
+}
+
+target "artifact-public" {
+  dockerfile = "./bin/docker/Dockerfile.public"
+  output = ["./build/public"]
 }

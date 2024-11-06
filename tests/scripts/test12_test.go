@@ -24,7 +24,6 @@ import (
 	"testing"
 
 	"github.com/e154/smart-home/internal/system/migrations"
-	"github.com/e154/smart-home/internal/system/storage"
 	"github.com/e154/smart-home/pkg/adaptors"
 	"github.com/e154/smart-home/pkg/models"
 	"github.com/e154/smart-home/pkg/scripts"
@@ -69,7 +68,6 @@ func Test12(t *testing.T) {
 	Convey("check db storage", t, func(ctx C) {
 		err := container.Invoke(func(adaptors *adaptors.Adaptors,
 			migrations *migrations.Migrations,
-			storageService *storage.Storage,
 			scriptService scripts.ScriptService) {
 
 			// clear database
@@ -99,7 +97,6 @@ func Test12(t *testing.T) {
 			_, err = adaptors.Variable.GetByName(context.Background(), "foo")
 			So(err, ShouldNotBeNil)
 
-			storageService.Serialize()
 			storage, err := adaptors.Variable.GetByName(context.Background(), "foo")
 			So(err, ShouldBeNil)
 			So(storage.Value, ShouldEqual, `{"bar":"foo"}`)

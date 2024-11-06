@@ -268,6 +268,7 @@ func (p *pluginManager) RemovePlugin(ctx context.Context, name string) error {
 	}
 
 	if err := p.ExternalPlugins.loadGoPlugin(name); err != nil {
+		err = errors.Wrap(apperr.ErrPluginLoadExternal, err.Error())
 		log.Warn(err.Error())
 	}
 

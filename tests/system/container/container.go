@@ -34,7 +34,6 @@ import (
 	"github.com/e154/smart-home/internal/system/mqtt"
 	"github.com/e154/smart-home/internal/system/mqtt_authenticator"
 	"github.com/e154/smart-home/internal/system/orm"
-	"github.com/e154/smart-home/internal/system/rbac"
 	"github.com/e154/smart-home/internal/system/rbac/access_list"
 	"github.com/e154/smart-home/internal/system/scheduler"
 	"github.com/e154/smart-home/internal/system/scripts"
@@ -60,7 +59,7 @@ func BuildContainer() (container *dig.Container) {
 	_ = container.Provide(NewMigrationsConfig)
 	_ = container.Provide(migrations.NewMigrations)
 	_ = container.Provide(adaptors.NewAdaptors)
-	_ = container.Provide(rbac.NewAuthenticator)
+	_ = container.Provide(NewAuthenticator)
 	_ = container.Provide(scheduler.NewScheduler)
 	_ = container.Provide(scripts.NewScriptService)
 	_ = container.Provide(MigrationList)
@@ -72,6 +71,7 @@ func BuildContainer() (container *dig.Container) {
 	_ = container.Provide(mqtt.NewMqtt)
 	_ = container.Provide(mqtt_authenticator.NewAuthenticator)
 	_ = container.Provide(access_list.NewAccessListService)
+	_ = container.Provide(NewHttpAccessFilter)
 	_ = container.Provide(stream.NewStreamService)
 	_ = container.Provide(client.NewGateClient)
 	_ = container.Provide(NewZigbee2mqttConfig)

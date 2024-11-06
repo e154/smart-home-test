@@ -53,6 +53,7 @@ func BuildContainer() (container *dig.Container) {
 
 	container = dig.New()
 	_ = container.Provide(ReadConfig)
+	_ = container.Provide(validation.NewValidate)
 	_ = container.Provide(web.New)
 	_ = container.Provide(validation.NewValidate)
 	_ = container.Provide(NewBackupConfig)
@@ -70,6 +71,7 @@ func BuildContainer() (container *dig.Container) {
 	_ = container.Provide(NewMqttCli)
 	_ = container.Provide(mqtt_authenticator.NewAuthenticator)
 	_ = container.Provide(access_list.NewAccessListService)
+	_ = container.Provide(NewHttpAccessFilter)
 	_ = container.Provide(stream.NewStreamService)
 	_ = container.Provide(client.NewGateClient)
 	_ = container.Provide(NewZigbee2mqttConfig)

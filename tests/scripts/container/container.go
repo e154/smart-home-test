@@ -35,6 +35,8 @@ import (
 	"github.com/e154/smart-home/internal/system/orm"
 	"github.com/e154/smart-home/internal/system/rbac"
 	"github.com/e154/smart-home/internal/system/rbac/access_list"
+	"github.com/e154/smart-home/internal/system/rbac/rbac_echo"
+	"github.com/e154/smart-home/internal/system/rbac/rbac_http"
 	"github.com/e154/smart-home/internal/system/scheduler"
 	"github.com/e154/smart-home/internal/system/scripts"
 	"github.com/e154/smart-home/internal/system/storage"
@@ -67,6 +69,8 @@ func BuildContainer() (container *dig.Container) {
 	_ = container.Provide(mqtt.NewMqtt)
 	_ = container.Provide(mqtt_authenticator.NewAuthenticator)
 	_ = container.Provide(access_list.NewAccessListService)
+	_ = container.Provide(rbac_echo.NewEchoAccessFilter)
+	_ = container.Provide(rbac_http.NewHttpAccessFilter)
 	_ = container.Provide(stream.NewStreamService)
 	_ = container.Provide(client.NewGateClient)
 	_ = container.Provide(NewZigbee2mqttConfig)

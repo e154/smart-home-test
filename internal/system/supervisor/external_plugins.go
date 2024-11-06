@@ -446,6 +446,9 @@ func (p *ExternalPlugins) loadExternalPlugins() {
 		if !item.IsDir {
 			continue
 		}
-		p.loadGoPlugin(item.Name)
+		if err := p.loadGoPlugin(item.Name); err != nil {
+			err = errors.Wrap(apperr.ErrPluginLoadExternal, err.Error())
+			log.Warn(err.Error())
+		}
 	}
 }

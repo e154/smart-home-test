@@ -42,6 +42,7 @@ import (
 	"github.com/e154/smart-home/internal/system/storage"
 	"github.com/e154/smart-home/internal/system/stream"
 	"github.com/e154/smart-home/internal/system/supervisor"
+	"github.com/e154/smart-home/internal/system/validation"
 	"github.com/e154/smart-home/internal/system/web"
 	"github.com/e154/smart-home/internal/system/zigbee2mqtt"
 	"go.uber.org/dig"
@@ -53,6 +54,7 @@ func BuildContainer() (container *dig.Container) {
 
 	container = dig.New()
 	_ = container.Provide(ReadConfig)
+	_ = container.Provide(validation.NewValidate)
 	_ = container.Provide(NewOrmConfig)
 	_ = container.Provide(web.New)
 	_ = container.Provide(orm.NewOrm)

@@ -186,20 +186,20 @@ typedoc:
 	@echo MARK: typedoc
 	npx typedoc --tsconfig ./data/scripts/tsconfig.json --out ./internal/api/typedoc ./data/scripts/global.d.ts
 
-.PHONY: build_darwin_arm64
-build_darwin_arm64:
-	@echo MARK: build local artefact
-	RELEASE_VERSION=${RELEASE_VERSION} GO_BUILD_LDFLAGS=${GO_BUILD_LDFLAGS} docker buildx bake artifact-darwin-arm64
+.PHONY: artifact
+artifact:
+	@echo MARK: build artefact
+	RELEASE_VERSION=${RELEASE_VERSION} GO_BUILD_LDFLAGS=${GO_BUILD_LDFLAGS} docker buildx bake artifact
 
-.PHONY: build_artifacts
-build_artifacts:
+.PHONY: artefacts
+artefacts:
 	@echo MARK: build all artefacts
 	RELEASE_VERSION=${RELEASE_VERSION} GO_BUILD_LDFLAGS=${GO_BUILD_LDFLAGS} docker buildx bake artifact-all
 
-.PHONY: local_build
-local_build:
-	@echo MARK: local build
-	RELEASE_VERSION=${RELEASE_VERSION} GO_BUILD_LDFLAGS=${GO_BUILD_LDFLAGS} docker buildx bake image-linux-arm64 --load
+.PHONY: image_local
+image_local:
+	@echo MARK: local image
+	RELEASE_VERSION=${RELEASE_VERSION} GO_BUILD_LDFLAGS=${GO_BUILD_LDFLAGS} docker buildx bake image-local
 
 .PHONY: test_build
 test_build:

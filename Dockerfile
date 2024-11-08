@@ -37,7 +37,7 @@ if [ "$(. goxx-env && echo $GOOS)" != "windows" ]; then
 fi
 LDFLAGS="$GO_BUILD_LDFLAGS -s -w"
 if [ "$(. goxx-env && echo $GOOS)" = "linux" ]; then
-  LDFLAGS="$LDFLAGS -extldflags '-static'"
+  LDFLAGS="$LDFLAGS -extldflags '-static' -linkmode 'external'"
 fi
 GO_BUILD_TAGS="-tags 'production'"
 goxx-go env
@@ -48,8 +48,7 @@ FROM scratch AS artifact
 COPY --from=build /out /
 
 FROM --platform=$BUILDPLATFORM postgres:15 AS postgres
-ARG UBUNTU_VERSION="20.04"
-FROM --platform=$BUILDPLATFORM ubuntu:${UBUNTU_VERSION}
+FROM --platform=$BUILDPLATFORM debian:bookworm-slim
 RUN apt-get update; \
     apt-get install -y --no-install-recommends \
       libpq5 \

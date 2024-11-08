@@ -37,7 +37,7 @@ if [ "$(. goxx-env && echo $GOOS)" != "windows" ]; then
 fi
 LDFLAGS="$GO_BUILD_LDFLAGS -s -w"
 if [ "$(. goxx-env && echo $GOOS)" = "linux" ]; then
-  LDFLAGS="$LDFLAGS -extldflags -static"
+  LDFLAGS="$LDFLAGS -extldflags '-static'"
 fi
 GO_BUILD_TAGS="-tags 'production'"
 goxx-go env
@@ -49,8 +49,12 @@ COPY --from=build /out /
 
 FROM --platform=$BUILDPLATFORM postgres:15 AS postgres
 FROM --platform=$BUILDPLATFORM debian:bookworm-slim
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends libpq5 ca-certificates iputils-ping
+RUN apt-get update; \
+    apt-get install -y --no-install-recommends \
+      libpq5 \
+      ca-certificates \
+      iputils-ping; \
+    rm -rf /var/lib/apt/lists/*
 RUN update-ca-certificates
 COPY --from=postgres /usr/lib/postgresql/15/bin/pg_dump /usr/local/bin
 COPY --from=postgres /usr/lib/postgresql/15/bin/pg_restore /usr/local/bin

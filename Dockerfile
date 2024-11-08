@@ -48,7 +48,8 @@ FROM scratch AS artifact
 COPY --from=build /out /
 
 FROM --platform=$BUILDPLATFORM postgres:15 AS postgres
-FROM --platform=$BUILDPLATFORM debian:bookworm-slim
+ARG UBUNTU_VERSION="20.04"
+FROM --platform=$BUILDPLATFORM ubuntu:${UBUNTU_VERSION}
 RUN apt-get update; \
     apt-get install -y --no-install-recommends \
       libpq5 \

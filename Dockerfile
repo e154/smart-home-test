@@ -48,7 +48,7 @@ FROM scratch AS artifact
 COPY --from=build /out /
 
 FROM --platform=$BUILDPLATFORM postgres:15 AS postgres
-FROM --platform=$BUILDPLATFORM debian:12-slim
+FROM --platform=$BUILDPLATFORM debian:bookworm-slim
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libpq5 ca-certificates iputils-ping
 RUN update-ca-certificates

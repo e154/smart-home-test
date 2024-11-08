@@ -420,7 +420,7 @@ func (e *supervisor) eventGetStateById(msg events.EventGetStateById) {
 
 func (e *supervisor) eventLoadedPlugin(msg events.EventPluginLoaded) (err error) {
 
-	log.Infof("Load plugin '%s' entities", msg.PluginName)
+	log.Infof("load plugin '%s' entities", msg.PluginName)
 
 	var page int64
 	var entities []*models.Entity
